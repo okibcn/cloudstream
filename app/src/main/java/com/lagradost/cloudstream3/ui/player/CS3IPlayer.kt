@@ -451,7 +451,8 @@ class CS3IPlayer : IPlayer {
             this.label,
             this.language,
             this.sampleMimeType,
-            this.channelCount
+            this.channelCount,
+            this.id,
         )
     }
 
