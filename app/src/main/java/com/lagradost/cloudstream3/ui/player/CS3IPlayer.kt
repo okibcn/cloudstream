@@ -387,7 +387,96 @@ class CS3IPlayer : IPlayer {
             ?: return
     }
 
+    private fun extractAllAudioTrackMetadata() {
+        val tracks = exoPlayer?.currentTracks ?: return
+        
+        // Filtrar solo grupos de audio
+        val audioGroups = tracks.groups.filter { it.type == TRACK_TYPE_AUDIO }
+        
+        Log.d("CS3debug", "=== Total Audio Groups: ${audioGroups.size} ===")
+        
+        audioGroups.forEachIndexed { groupIndex, group ->
+            Log.d("CS3debug", "\n--- GROUPINDEX $groupIndex ---")
+            Log.d("CS3debug", "Group type: ${group.type}")
+            Log.d("CS3debug", "Group isSelected: ${group.isSelected}")
+            Log.d("CS3debug", "Group isSupported: ${group.isSupported}")
+            Log.d("CS3debug", "Total formats in group: ${group.mediaTrackGroup.length}")
+            
+            // Iterar sobre cada Format dentro del grupo
+            for (formatIndex in 0 until group.mediaTrackGroup.length) {
+                val format = group.mediaTrackGroup.getFormat(formatIndex)
+                val isTrackSelected = group.isTrackSelected(formatIndex)
+                val isTrackSupported = group.isTrackSupported(formatIndex)
+                
+                Log.d("CS3debug", "\n  -- Format $formatIndex --")
+                Log.d("CS3debug", "  isSelected: $isTrackSelected")
+                Log.d("CS3debug", "  isSupported: $isTrackSupported")
+                
+                // DATOS BÁSICOS
+                Log.d("CS3debug", "  id: ${format.id}")
+                Log.d("CS3debug", "  label: ${format.label}")
+                Log.d("CS3debug", "  language: ${format.language}")
+                Log.d("CS3debug", "  containerMimeType: ${format.containerMimeType}")
+                Log.d("CS3debug", "  sampleMimeType: ${format.sampleMimeType}")
+                
+                // AUDIO ESPECÍFICO
+                Log.d("CS3debug", "  channelCount: ${format.channelCount}")
+                Log.d("CS3debug", "  sampleRate: ${format.sampleRate}")
+                Log.d("CS3debug", "  bitrate: ${format.bitrate}")
+                Log.d("CS3debug", "  averageBitrate: ${format.averageBitrate}")
+                Log.d("CS3debug", "  peakBitrate: ${format.peakBitrate}")
+                Log.d("CS3debug", "  pcmEncoding: ${format.pcmEncoding}")
+                
+                // CODECS Y METADATA
+                Log.d("CS3debug", "  codecs: ${format.codecs}")
+                Log.d("CS3debug", "  roleFlags: ${format.roleFlags}")
+                Log.d("CS3debug", "  selectionFlags: ${format.selectionFlags}")
+                
+                // TIEMPOS Y DURACIÓN
+                Log.d("CS3debug", "  subsampleOffsetUs: ${format.subsampleOffsetUs}")
+                
+                // METADATA ADICIONAL
+                Log.d("CS3debug", "  metadata: ${format.metadata}")
+                if (format.metadata != null) {
+                    for (i in 0 until format.metadata!!.length()) {
+                        val entry = format.metadata!!.get(i)
+                        Log.d("CS3debug", "    metadata[$i]: ${entry.javaClass.simpleName} = $entry")
+                    }
+                }
+                
+                // DRM
+                Log.d("CS3debug", "  drmInitData: ${format.drmInitData}")
+                
+                // DATOS CRUDOS
+                Log.d("CS3debug", "  initializationData size: ${format.initializationData?.size}")
+                
+                // CRYPTO
+                Log.d("CS3debug", "  cryptoType: ${format.cryptoType}")
+                
+                // ACCESSIBILITY
+                Log.d("CS3debug", "  accessibilityChannel: ${format.accessibilityChannel}")
+            }
+        }
+        
+        // TAMBIÉN OBTENER EL FORMATO ACTUAL DE AUDIO
+        Log.d("CS3debug", "\n=== CURRENT AUDIO FORMAT ===")
+        exoPlayer?.audioFormat?.let { currentFormat ->
+            Log.d("CS3debug", "CURRENT id: ${currentFormat.id}")
+            Log.d("CS3debug", "CURRENT label: ${currentFormat.label}")
+            Log.d("CS3debug", "CURRENT language: ${currentFormat.language}")
+            Log.d("CS3debug", "CURRENT sampleMimeType: ${currentFormat.sampleMimeType}")
+            Log.d("CS3debug", "CURRENT channelCount: ${currentFormat.channelCount}")
+            Log.d("CS3debug", "CURRENT sampleRate: ${currentFormat.sampleRate}")
+            Log.d("CS3debug", "CURRENT bitrate: ${currentFormat.bitrate}")
+            Log.d("CS3debug", "CURRENT codecs: ${currentFormat.codecs}")
+            Log.d("CS3debug", "CURRENT selectionFlags: ${currentFormat.selectionFlags}")
+            Log.d("CS3debug", "CURRENT roleFlags: ${currentFormat.roleFlags}")
+        }
+    }
+
+
     override fun setPreferredAudioTrack(trackLanguage: String?, id: String?) {
+        // CS3debug
         preferredAudioTrackLanguage = trackLanguage
         val audioTrackIndex: Int = id?.toIntOrNull() ?: currentAudioTrackIndex
         val audioTracks = exoPlayer?.currentTracks?.groups?.filter { it.type == TRACK_TYPE_AUDIO } ?: emptyList()
@@ -1447,10 +1536,13 @@ class CS3IPlayer : IPlayer {
             exoPlayer?.addListener(object : Player.Listener {
                 override fun onTracksChanged(tracks: Tracks) {
                     safe {
+                        // CS3debug
+                        extractAllAudioTrackMetadata()
+
                         // Fix Format.id of new audio tracks with unique index. Also adds metadata not found in other fields
                         var uniqueTrackId = 0
                         tracks.groups.filter { it.type == TRACK_TYPE_AUDIO }.forEach { group ->
-                            group.getFormats().forEach { (format, _) ->
+                            group.getFormats().forEach { (format, index) ->
                                 val idField = Format::class.java.getDeclaredField("id")
                                 idField.isAccessible = true
                                 val newId = "${uniqueTrackId++}"
