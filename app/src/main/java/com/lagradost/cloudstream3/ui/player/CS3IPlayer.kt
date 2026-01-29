@@ -580,7 +580,7 @@ class CS3IPlayer : IPlayer {
         val currentTextTracks = textTracks.filter { track ->
             playerSelectedSubtitleTracks.any { it.second && it.first == track.id }
         }
-
+        extractAllAudioTrackMetadata()
         return CurrentTracks(
             exoPlayer?.videoFormat?.toVideoTrack(),
             currentAudioTrack,
@@ -1524,20 +1524,6 @@ class CS3IPlayer : IPlayer {
             exoPlayer?.addListener(object : Player.Listener {
                 override fun onTracksChanged(tracks: Tracks) {
                     safe {
-                        // CS3debug
-                        extractAllAudioTrackMetadata()
-
-                        // Fix Format.id of new audio tracks with unique index. Also adds metadata not found in other fields
-                        var uniqueTrackId = 0
-                        tracks.groups.filter { it.type == TRACK_TYPE_AUDIO }.forEach { group ->
-                            group.getFormats().forEach { (format, index) ->
-                                val idField = Format::class.java.getDeclaredField("id")
-                                idField.isAccessible = true
-                                val newId = "${uniqueTrackId++}"
-                                idField.set(format, newId)
-                            }
-                        }
-
                         val textTracks = tracks.groups.filter { it.type == TRACK_TYPE_TEXT }
 
                         playerSelectedSubtitleTracks =
