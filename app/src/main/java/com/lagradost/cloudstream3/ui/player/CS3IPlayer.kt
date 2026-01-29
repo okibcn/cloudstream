@@ -447,7 +447,7 @@ class CS3IPlayer : IPlayer {
                 Log.d("CS3debug", "  drmInitData: ${format.drmInitData}")
                 
                 // DATOS CRUDOS
-                Log.d("CS3debug", "  initializationData size: ${format.initializationData?.size}")
+                Log.d("CS3debug", "  initializationData size: ${format.initializationData.size}")
                 
                 // CRYPTO
                 Log.d("CS3debug", "  cryptoType: ${format.cryptoType}")
