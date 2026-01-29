@@ -501,7 +501,7 @@ class CS3IPlayer : IPlayer {
         exoPlayer?.trackSelectionParameters = exoPlayer?.trackSelectionParameters
             ?.buildUpon()
             ?.setPreferredAudioLanguage(trackLanguage)
-            ?.build()
+            ?.build() ?: return
     }
 
     /**
@@ -521,7 +521,7 @@ class CS3IPlayer : IPlayer {
         }
     }
 
-    private fun Format.toAudioTrack(trackIndex: Int?): AudioTrack {
+    private fun Format.toAudioTrack(formatIndex: Int?): AudioTrack {
         return AudioTrack(
             this.id,
             this.label,
