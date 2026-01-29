@@ -478,7 +478,7 @@ class CS3IPlayer : IPlayer {
         id?.let { trackId ->
             val trackFormatIndex = formatIndex ?: 0  // Default to first format if not specified
             exoPlayer?.currentTracks?.groups
-                ?.filter { it.type == TRACK_TYPE_AUDIO }
+                ?.filter { it.type == TRACK_TYPE_AUDIO } 
                 ?.find { group ->
                     (0 until group.mediaTrackGroup.length).any { index ->
                         group.mediaTrackGroup.getFormat(index).id == trackId
