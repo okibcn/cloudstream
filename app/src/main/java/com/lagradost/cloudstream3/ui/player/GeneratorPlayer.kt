@@ -1447,7 +1447,10 @@ class GeneratorPlayer : FullScreenPlayer() {
                     // selectTracksDialog = null
                 }
 
-                var audioIndexStart = tracks.currentAudioTrack?.id?.toIntOrNull() ?: 0
+                var audioIndexStart = currentAudioTracks.indexOfFirst { track ->
+                    track.id == tracks.currentAudioTrack?.id && 
+                    track.formatIndex == tracks.currentAudioTrack?.formatIndex
+                }.takeIf { it != -1 } ?: 0
 
                 val audioArrayAdapter =
                     ArrayAdapter<String>(ctx, R.layout.sort_bottom_single_choice)
@@ -1502,7 +1505,8 @@ class GeneratorPlayer : FullScreenPlayer() {
                 binding.applyBtt.setOnClickListener {
                     val currentTrack = currentAudioTracks.getOrNull(audioIndexStart)
                     player.setPreferredAudioTrack(
-                        currentTrack?.language, currentTrack?.id
+                        currentTrack?.language, 
+                        "${currentTrack?.id}:${currentTrack?.formatIndex}"
                     )
 
                     val currentVideo = currentVideoTracks.getOrNull(videoIndex)

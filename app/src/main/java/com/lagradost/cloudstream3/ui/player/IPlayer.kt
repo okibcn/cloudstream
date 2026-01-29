@@ -200,7 +200,7 @@ data class AudioTrack(
     override val language: String?,
     override val sampleMimeType: String?,
     val channelCount: Int?,
-    val trackIndex: String?,
+    val formatIndex: Int?,
 ) : Track
 
 data class TextTrack(

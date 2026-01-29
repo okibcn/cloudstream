@@ -140,7 +140,6 @@ class CS3IPlayer : IPlayer {
             field = value
         }
 
-    private var currentAudioTrackIndex: Int = -1
     var cacheSize = 0L
     var simpleCacheSize = 0L
     var videoBufferMs = 0L
@@ -474,48 +473,36 @@ class CS3IPlayer : IPlayer {
         }
     }
 
-
     override fun setPreferredAudioTrack(trackLanguage: String?, id: String?) {
-        // CS3debug
         preferredAudioTrackLanguage = trackLanguage
-        val audioTrackIndex: Int = id?.toIntOrNull() ?: currentAudioTrackIndex
-        val audioTracks = exoPlayer?.currentTracks?.groups?.filter { it.type == TRACK_TYPE_AUDIO } ?: emptyList()
-        val allFormats = audioTracks.flatMapIndexed { groupIndex, group ->
-            (0 until group.mediaTrackGroup.length).map { formatIndex ->
-                Pair(group.mediaTrackGroup, formatIndex)
+        
+        val formatId = id?.substringBeforeLast(":")
+        val trackFormatIndex = id?.substringAfterLast(":")?.toIntOrNull() ?: -1
+        
+        exoPlayer?.currentTracks?.groups
+            ?.filter { it.type == TRACK_TYPE_AUDIO }
+            ?.find { group ->
+                (0 until group.mediaTrackGroup.length).any { index ->
+                    group.mediaTrackGroup.getFormat(index).id == formatId
+                }
             }
-        }
-
-        if (audioTrackIndex in allFormats.indices) {
-            // we need the group (trackGroup) and the index within the group (formatIndex) to 
-            // select the proper track in exoPlayer
-            val (trackGroup, formatIndex) = allFormats[audioTrackIndex]
-                exoPlayer?.trackSelectionParameters = exoPlayer?.trackSelectionParameters
+            ?.let { group ->
+                exoPlayer?.trackSelectionParameters
                     ?.buildUpon()
-                    ?.setOverrideForType(
-                    TrackSelectionOverride(trackGroup, formatIndex)
-                    )
-                ?.build() ?: return
-            // if we reach here, we have successfully set newParams
-            currentAudioTrackIndex = audioTrackIndex
-                return
+                    ?.setOverrideForType(TrackSelectionOverride(group.mediaTrackGroup, trackFormatIndex))
+                    ?.build()
             }
-        // Fallback to language-based selection
+            ?.let { newParams ->
+                exoPlayer?.trackSelectionParameters = newParams
+                return  // everything went fine
+            }
+        
+        // Fallback: se ejecuta si falla cualquier paso
         exoPlayer?.trackSelectionParameters = exoPlayer?.trackSelectionParameters
             ?.buildUpon()
             ?.setPreferredAudioLanguage(trackLanguage)
             ?.build()
-            ?: return
-        // if we reach here, we have successfully set newParams
-        // sets the currentAudioTrackIndex
-        audioTracks.getFormats().mapIndexed { index, (format, _) ->
-            if (format.language == trackLanguage) {
-                currentAudioTrackIndex = index
-                return  // This way we select the first audio track of a given language
-            }
-        }
     }
-
 
     /**
      * Gets all supported formats in a list
@@ -534,14 +521,14 @@ class CS3IPlayer : IPlayer {
         }
     }
 
-    private fun Format.toAudioTrack(): AudioTrack {
+    private fun Format.toAudioTrack(trackIndex: Int?): AudioTrack {
         return AudioTrack(
             this.id,
             this.label,
             this.language,
             this.sampleMimeType,
             this.channelCount,
-            this.id,
+            formatIndex ?: 0,
         )
     }
 
@@ -566,27 +553,28 @@ class CS3IPlayer : IPlayer {
     }
 
     override fun getVideoTracks(): CurrentTracks {
-        val allTracks = exoPlayer?.currentTracks?.groups ?: emptyList()
-        val videoTracks = allTracks.filter { it.type == TRACK_TYPE_VIDEO }
+        val allTrackGroups = exoPlayer?.currentTracks?.groups ?: emptyList()
+
+        val videoTracks = allTrackGroups.filter { it.type == TRACK_TYPE_VIDEO }
             .getFormats()
             .map { it.first.toVideoTrack() }
-        val audioTracks = allTracks.filter { it.type == TRACK_TYPE_AUDIO }
-            .getFormats()
-            .mapIndexed { index, (format, _) ->
-                // Detect which one is the current track to init currentAudioTrackIndex
-                if (currentAudioTrackIndex == -1 && exoPlayer?.audioFormat?.language == format.language) {
-                    currentAudioTrackIndex = index
+
+        var currentAudioTrack: AudioTrack? = null
+        val audioTracks = allTrackGroups.filter { it.type == TRACK_TYPE_AUDIO }
+            .flatMap { group ->
+                (0 until group.mediaTrackGroup.length).map { formatIndex ->
+                    val format = group.mediaTrackGroup.getFormat(formatIndex)
+                    val audioTrack = format.toAudioTrack(formatIndex)
+                    
+                    if (group.isTrackSelected(formatIndex)) {
+                        currentAudioTrack = audioTrack
+                    }
+                    audioTrack  // Retornar el AudioTrack para la lista
                 }
-                format.toAudioTrack()
             }
         
-        val currentAudioTrack = if (currentAudioTrackIndex in audioTracks.indices) {
-            audioTracks[currentAudioTrackIndex]
-        } else {
-            exoPlayer?.audioFormat?.toAudioTrack()
-        }
-
-        val textTracks = allTracks.filter { it.type == TRACK_TYPE_TEXT }.getFormats()
+        val textTracks = allTrackGroups.filter { it.type == TRACK_TYPE_TEXT }
+            .getFormats()
             .map { it.first.toSubtitleTrack() }
 
         val currentTextTracks = textTracks.filter { track ->
