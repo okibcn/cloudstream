@@ -553,25 +553,20 @@ class CS3IPlayer : IPlayer {
 
     override fun getVideoTracks(): CurrentTracks {
         val allTrackGroups = exoPlayer?.currentTracks?.groups ?: emptyList()
-
         val videoTracks = allTrackGroups.filter { it.type == TRACK_TYPE_VIDEO }
             .getFormats()
             .map { it.first.toVideoTrack() }
-
         var currentAudioTrack: AudioTrack? = null
         val audioTracks = allTrackGroups.filter { it.type == TRACK_TYPE_AUDIO }
             .flatMap { group ->
-                (0 until group.mediaTrackGroup.length).map { formatIndex ->
-                    val format = group.mediaTrackGroup.getFormat(formatIndex)
+                group.getFormats().map { (format, formatIndex) ->
                     val audioTrack = format.toAudioTrack(formatIndex)
-                    
                     if (group.isTrackSelected(formatIndex)) {
                         currentAudioTrack = audioTrack
                     }
-                    audioTrack  // Retornar el AudioTrack para la lista
+                    audioTrack
                 }
             }
-        
         val textTracks = allTrackGroups.filter { it.type == TRACK_TYPE_TEXT }
             .getFormats()
             .map { it.first.toSubtitleTrack() }
