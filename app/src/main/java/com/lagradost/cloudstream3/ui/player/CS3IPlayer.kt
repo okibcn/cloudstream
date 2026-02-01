@@ -1971,7 +1971,7 @@ class CS3IPlayer : IPlayer {
     }
 
     private fun logcatExoPlayerState() {
-        val TAG = "CS3debugExoPlayer"
+        val TAG = "CSdebugExoPlayer"
         val audioTAG = "CSdebugAudioTracks"
         val videoTAG = "CSdebugVideoTracks"
         val textTAG = "CSdebugTextTracks"
