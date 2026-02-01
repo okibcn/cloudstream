@@ -11,7 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -22,12 +21,10 @@ jobs:
           distribution: temurin
           java-version: 17
       
-      # ⭐ Gradle setup con escritura de cache habilitada para todas las ramas
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
-          # Permitir escritura en cache desde cualquier rama (ideal para debug/desarrollo)
           cache-read-only: false
       
       - name: Grant execute permission for gradlew
@@ -83,7 +80,6 @@ jobs:
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          # github.run_number se incrementa automáticamente
           name: debug-apk-${{ github.ref_name }}-run${{ github.run_number }}
           path: "app/build/outputs/apk/prerelease/debug/*.apk"
           retention-days: 7
