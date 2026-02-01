@@ -876,7 +876,8 @@ suspend fun loadExtractor(
 
     val currentUrl = unshortenLinkSafe(url)
     val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
-
+    TAG = "CS3extractor"
+    Log.d (TAG,"Url: $Url")
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
@@ -890,8 +891,10 @@ suspend fun loadExtractor(
                     throw e
                 }
             }
+            Log.d (TAG,"  ✓ Decoded")
             return true
         }
+        Log.d (TAG,"  ✕ Failed")
     }
 
     // this is to match mirror domains - like example.com, example.net
