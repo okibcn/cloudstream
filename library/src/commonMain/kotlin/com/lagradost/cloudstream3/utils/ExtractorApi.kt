@@ -331,6 +331,8 @@ import java.net.URI
 import java.util.UUID
 import kotlin.coroutines.cancellation.CancellationException
 
+import android.util.Log
+
 /**
  * For use in the ConcatenatingMediaSource.
  * If features are missing (headers), please report and we can add it.
