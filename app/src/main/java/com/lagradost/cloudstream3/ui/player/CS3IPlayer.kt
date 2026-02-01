@@ -2335,7 +2335,7 @@ class CS3IPlayer : IPlayer {
             Log.d(TAG, "pixelWidthHeightRatio: ${currentFormat.pixelWidthHeightRatio}")
             Log.d(TAG, "rotationDegrees: ${currentFormat.rotationDegrees}")
             Log.d(TAG, "colorInfo: ${currentFormat.colorInfo}")
-            format.colorInfo?.let { colorInfo ->
+            currentFormat.colorInfo?.let { colorInfo ->
                 Log.d(TAG, "    colorSpace: ${colorInfo.colorSpace}")
                 Log.d(TAG, "    colorRange: ${colorInfo.colorRange}")
                 Log.d(TAG, "    colorTransfer: ${colorInfo.colorTransfer}")
