@@ -2121,7 +2121,14 @@ class CS3IPlayer : IPlayer {
                 Log.d(videoTAG, "  pixelWidthHeightRatio: ${format.pixelWidthHeightRatio}")
                 Log.d(videoTAG, "  rotationDegrees: ${format.rotationDegrees}")
                 Log.d(videoTAG, "  colorInfo: ${format.colorInfo}")
-                
+                format.colorInfo?.let { colorInfo ->
+                    Log.d(videoTAG, "    colorSpace: ${colorInfo.colorSpace}")
+                    Log.d(videoTAG, "    colorRange: ${colorInfo.colorRange}")
+                    Log.d(videoTAG, "    colorTransfer: ${colorInfo.colorTransfer}")
+                    Log.d(videoTAG, "    hdrStaticInfo: ${colorInfo.hdrStaticInfo?.let { "${it.size} bytes" } ?: "null"}")
+                    Log.d(videoTAG, "    lumaBitdepth: ${colorInfo.lumaBitdepth}")
+                    Log.d(videoTAG, "    chromaBitdepth: ${colorInfo.chromaBitdepth}")
+                } ?: Log.d(videoTAG, "    null")
                 // FLAGS
                 Log.d(videoTAG, "  roleFlags: ${format.roleFlags} ${getRoleFlagsDescription(format.roleFlags)}")
                 Log.d(videoTAG, "  selectionFlags: ${format.selectionFlags} ${getSelectionFlagsDescription(format.selectionFlags)}")
@@ -2328,6 +2335,14 @@ class CS3IPlayer : IPlayer {
             Log.d(TAG, "pixelWidthHeightRatio: ${currentFormat.pixelWidthHeightRatio}")
             Log.d(TAG, "rotationDegrees: ${currentFormat.rotationDegrees}")
             Log.d(TAG, "colorInfo: ${currentFormat.colorInfo}")
+            format.colorInfo?.let { colorInfo ->
+                Log.d(videoTAG, "    colorSpace: ${colorInfo.colorSpace}")
+                Log.d(videoTAG, "    colorRange: ${colorInfo.colorRange}")
+                Log.d(videoTAG, "    colorTransfer: ${colorInfo.colorTransfer}")
+                Log.d(videoTAG, "    hdrStaticInfo: ${colorInfo.hdrStaticInfo?.let { "${it.size} bytes" } ?: "null"}")
+                Log.d(videoTAG, "    lumaBitdepth: ${colorInfo.lumaBitdepth}")
+                Log.d(videoTAG, "    chromaBitdepth: ${colorInfo.chromaBitdepth}")
+            } ?: Log.d(videoTAG, "    null")
             Log.d(TAG, "selectionFlags: ${currentFormat.selectionFlags} ${getSelectionFlagsDescription(currentFormat.selectionFlags)}")
             Log.d(TAG, "roleFlags: ${currentFormat.roleFlags} ${getRoleFlagsDescription(currentFormat.roleFlags)}")
         } ?: Log.d(TAG, "NULL - No video format currently playing")
