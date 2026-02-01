@@ -878,7 +878,8 @@ suspend fun loadExtractor(
 
     val currentUrl = unshortenLinkSafe(url)
     val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
-    TAG = "CS3extractor"
+    // CS3debug
+    TAG: String = "CS3debug"
     Log.d (TAG,"Url: $Url")
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
