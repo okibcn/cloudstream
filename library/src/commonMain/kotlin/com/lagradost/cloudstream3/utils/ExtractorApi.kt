@@ -878,28 +878,32 @@ suspend fun loadExtractor(
 
     val currentUrl = unshortenLinkSafe(url)
     val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
+    
     // CS3debug
     val TAG = "CS3debug"
-    Log.d (TAG,"Url: $Url")
+    Log.d(TAG, "Url: $url")
+    
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
+            Log.d(TAG, "  → Trying extractor: ${extractor.name}")
             try {
-                extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                val decodedUrl = extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                Log.d(TAG, "  ✓ Decoded successfully")
+                return true
             } catch (e: Exception) {
+                Log.d(TAG, "  ✗ Error: ${e.message}")
                 logError(e)
                 // Rethrow if we have timed out
                 if (e is CancellationException) {
                     throw e
                 }
             }
-            Log.d (TAG,"  ✓ Decoded")
-            return true
         }
-        Log.d (TAG,"  ✕ Failed")
     }
 
+    Log.d(TAG, "  → Trying fuzzy search...")
     // this is to match mirror domains - like example.com, example.net
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
@@ -908,19 +912,23 @@ suspend fun loadExtractor(
                 currentUrl
             ) > 80
         ) {
+            Log.d(TAG, "  → Fuzzy match found: ${extractor.name}")
             try {
                 extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                Log.d(TAG, "  ✓ Decoded via fuzzy search")
+                return true
             } catch (e: Exception) {
+                Log.d(TAG, "  ✗ Fuzzy error: ${e.message}")
                 logError(e)
                 // Rethrow if we have timed out
                 if (e is CancellationException) {
                     throw e
                 }
             }
-            return true
         }
     }
 
+    Log.d(TAG, "  ✕ No extractor found")
     return false
 }
 
