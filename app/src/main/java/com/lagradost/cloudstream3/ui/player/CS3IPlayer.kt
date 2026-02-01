@@ -408,7 +408,7 @@ class CS3IPlayer : IPlayer {
                 return
             }
         }
-
+        logcatExoPlayerState()
         exoPlayer?.trackSelectionParameters = exoPlayer?.trackSelectionParameters
             ?.buildUpon()
             ?.setPreferredAudioLanguage(trackLanguage)
@@ -1968,6 +1968,417 @@ class CS3IPlayer : IPlayer {
         ) {
             event(TracksChangedEvent())
         }
+    }
+
+    private fun logcatExoPlayerState() {
+        val TAG = "CS3debugExoPlayer"
+        val audioTAG = "CSdebugAudioTracks"
+        val videoTAG = "CSdebugVideoTracks"
+        val textTAG = "CSdebugTextTracks"
+        val player = exoPlayer ?: return
+        
+        Log.d(TAG, "\n" + "=".repeat(80))
+        Log.d(TAG, "=== EXOPLAYER TRACK DETAILS ===")
+        Log.d(TAG, "=".repeat(80))
+        
+        val tracks = player.currentTracks
+        
+        // OVERALL TRACKS SUMMARY
+        Log.d(TAG, "\n--- Tracks Summary ---")
+        Log.d(TAG, "Total groups: ${tracks.groups.size}")
+        Log.d(TAG, "Audio groups: ${tracks.groups.count { it.type == TRACK_TYPE_AUDIO }}")
+        Log.d(TAG, "Video groups: ${tracks.groups.count { it.type == TRACK_TYPE_VIDEO }}")
+        Log.d(TAG, "Text groups: ${tracks.groups.count { it.type == TRACK_TYPE_TEXT }}")
+        Log.d(TAG, "isEmpty: ${tracks.isEmpty}")
+        
+        // AUDIO GROUPS DETAILED
+        val audioGroups = tracks.groups.filter { it.type == TRACK_TYPE_AUDIO }
+        
+        Log.d(audioTAG, "\n" + "=".repeat(80))
+        Log.d(audioTAG, "=== AUDIO TRACKS (${audioGroups.size} groups) ===")
+        Log.d(audioTAG, "=".repeat(80))
+        
+        audioGroups.forEachIndexed { groupIndex, group ->
+            Log.d(audioTAG, "\n${"─".repeat(60)}")
+            Log.d(audioTAG, "GROUP $groupIndex")
+            Log.d(audioTAG, "─".repeat(60))
+            Log.d(audioTAG, "type: ${getTrackTypeName(group.type)}")
+            Log.d(audioTAG, "isSelected: ${group.isSelected}")
+            Log.d(audioTAG, "isSupported: ${group.isSupported}")
+            Log.d(audioTAG, "length: ${group.length}")
+            Log.d(audioTAG, "mediaTrackGroup.length: ${group.mediaTrackGroup.length}")
+            Log.d(audioTAG, "mediaTrackGroup.type: ${group.mediaTrackGroup.type}")
+            Log.d(audioTAG, "mediaTrackGroup.id: ${group.mediaTrackGroup.id}")
+            
+            for (formatIndex in 0 until group.mediaTrackGroup.length) {
+                val format = group.mediaTrackGroup.getFormat(formatIndex)
+                val isTrackSelected = group.isTrackSelected(formatIndex)
+                val isTrackSupported = group.isTrackSupported(formatIndex)
+                
+                Log.d(audioTAG, "\n  ${"┈".repeat(50)}")
+                Log.d(audioTAG, "  FORMAT $formatIndex ${if (isTrackSelected) "★ SELECTED" else ""}")
+                Log.d(audioTAG, "  ${"┈".repeat(50)}")
+                Log.d(audioTAG, "  isSelected: $isTrackSelected")
+                Log.d(audioTAG, "  isSupported: $isTrackSupported")
+                
+                // BASIC INFO
+                Log.d(audioTAG, "  id: ${format.id}")
+                Log.d(audioTAG, "  label: ${format.label}")
+                Log.d(audioTAG, "  language: ${format.language}")
+                Log.d(audioTAG, "  containerMimeType: ${format.containerMimeType}")
+                Log.d(audioTAG, "  sampleMimeType: ${format.sampleMimeType}")
+                Log.d(audioTAG, "  codecs: ${format.codecs}")
+                
+                // AUDIO SPECIFIC
+                Log.d(audioTAG, "  channelCount: ${format.channelCount}")
+                Log.d(audioTAG, "  sampleRate: ${format.sampleRate} Hz")
+                Log.d(audioTAG, "  bitrate: ${format.bitrate} bps")
+                Log.d(audioTAG, "  averageBitrate: ${format.averageBitrate} bps")
+                Log.d(audioTAG, "  peakBitrate: ${format.peakBitrate} bps")
+                Log.d(audioTAG, "  pcmEncoding: ${format.pcmEncoding}")
+                
+                // FLAGS
+                Log.d(audioTAG, "  roleFlags: ${format.roleFlags} ${getRoleFlagsDescription(format.roleFlags)}")
+                Log.d(audioTAG, "  selectionFlags: ${format.selectionFlags} ${getSelectionFlagsDescription(format.selectionFlags)}")
+                
+                // TIMING
+                Log.d(audioTAG, "  subsampleOffsetUs: ${format.subsampleOffsetUs}")
+                
+                // METADATA
+                Log.d(audioTAG, "  metadata: ${format.metadata}")
+                format.metadata?.let { metadata ->
+                    for (i in 0 until metadata.length()) {
+                        val entry = metadata.get(i)
+                        Log.d(audioTAG, "    [$i] ${entry.javaClass.simpleName}: $entry")
+                    }
+                }
+                
+                // DRM
+                Log.d(audioTAG, "  drmInitData: ${format.drmInitData}")
+                Log.d(audioTAG, "  cryptoType: ${format.cryptoType}")
+                
+                // INIT DATA
+                Log.d(audioTAG, "  initializationData.size: ${format.initializationData.size}")
+                format.initializationData.forEachIndexed { i, data ->
+                    Log.d(audioTAG, "    [$i] ${data.size} bytes")
+                }
+                
+                // ACCESSIBILITY
+                Log.d(audioTAG, "  accessibilityChannel: ${format.accessibilityChannel}")
+                
+                // ADDITIONAL
+                Log.d(audioTAG, "  customData: ${format.customData}")
+                Log.d(audioTAG, "  tileCountHorizontal: ${format.tileCountHorizontal}")
+                Log.d(audioTAG, "  tileCountVertical: ${format.tileCountVertical}")
+            }
+        }
+        
+        // VIDEO GROUPS DETAILED
+        val videoGroups = tracks.groups.filter { it.type == TRACK_TYPE_VIDEO }
+        
+        Log.d(videoTAG, "\n" + "=".repeat(80))
+        Log.d(videoTAG, "=== VIDEO TRACKS (${videoGroups.size} groups) ===")
+        Log.d(videoTAG, "=".repeat(80))
+        
+        videoGroups.forEachIndexed { groupIndex, group ->
+            Log.d(videoTAG, "\n${"─".repeat(60)}")
+            Log.d(videoTAG, "GROUP $groupIndex")
+            Log.d(videoTAG, "─".repeat(60))
+            Log.d(videoTAG, "type: ${getTrackTypeName(group.type)}")
+            Log.d(videoTAG, "isSelected: ${group.isSelected}")
+            Log.d(videoTAG, "isSupported: ${group.isSupported}")
+            Log.d(videoTAG, "length: ${group.length}")
+            Log.d(videoTAG, "mediaTrackGroup.length: ${group.mediaTrackGroup.length}")
+            Log.d(videoTAG, "mediaTrackGroup.type: ${group.mediaTrackGroup.type}")
+            Log.d(videoTAG, "mediaTrackGroup.id: ${group.mediaTrackGroup.id}")
+            
+            for (formatIndex in 0 until group.mediaTrackGroup.length) {
+                val format = group.mediaTrackGroup.getFormat(formatIndex)
+                val isTrackSelected = group.isTrackSelected(formatIndex)
+                val isTrackSupported = group.isTrackSupported(formatIndex)
+                
+                Log.d(videoTAG, "\n  ${"┈".repeat(50)}")
+                Log.d(videoTAG, "  FORMAT $formatIndex ${if (isTrackSelected) "★ SELECTED" else ""}")
+                Log.d(videoTAG, "  ${"┈".repeat(50)}")
+                Log.d(videoTAG, "  isSelected: $isTrackSelected")
+                Log.d(videoTAG, "  isSupported: $isTrackSupported")
+                
+                // BASIC INFO
+                Log.d(videoTAG, "  id: ${format.id}")
+                Log.d(videoTAG, "  label: ${format.label}")
+                Log.d(videoTAG, "  language: ${format.language}")
+                Log.d(videoTAG, "  containerMimeType: ${format.containerMimeType}")
+                Log.d(videoTAG, "  sampleMimeType: ${format.sampleMimeType}")
+                Log.d(videoTAG, "  codecs: ${format.codecs}")
+                
+                // VIDEO SPECIFIC
+                Log.d(videoTAG, "  width: ${format.width}")
+                Log.d(videoTAG, "  height: ${format.height}")
+                Log.d(videoTAG, "  frameRate: ${format.frameRate} fps")
+                Log.d(videoTAG, "  bitrate: ${format.bitrate} bps")
+                Log.d(videoTAG, "  averageBitrate: ${format.averageBitrate} bps")
+                Log.d(videoTAG, "  peakBitrate: ${format.peakBitrate} bps")
+                Log.d(videoTAG, "  pixelWidthHeightRatio: ${format.pixelWidthHeightRatio}")
+                Log.d(videoTAG, "  rotationDegrees: ${format.rotationDegrees}")
+                Log.d(videoTAG, "  colorInfo: ${format.colorInfo}")
+                
+                // FLAGS
+                Log.d(videoTAG, "  roleFlags: ${format.roleFlags} ${getRoleFlagsDescription(format.roleFlags)}")
+                Log.d(videoTAG, "  selectionFlags: ${format.selectionFlags} ${getSelectionFlagsDescription(format.selectionFlags)}")
+                
+                // TIMING
+                Log.d(videoTAG, "  subsampleOffsetUs: ${format.subsampleOffsetUs}")
+                
+                // METADATA
+                Log.d(videoTAG, "  metadata: ${format.metadata}")
+                format.metadata?.let { metadata ->
+                    for (i in 0 until metadata.length()) {
+                        val entry = metadata.get(i)
+                        Log.d(videoTAG, "    [$i] ${entry.javaClass.simpleName}: $entry")
+                    }
+                }
+                
+                // DRM
+                Log.d(videoTAG, "  drmInitData: ${format.drmInitData}")
+                Log.d(videoTAG, "  cryptoType: ${format.cryptoType}")
+                
+                // INIT DATA
+                Log.d(videoTAG, "  initializationData.size: ${format.initializationData.size}")
+                format.initializationData.forEachIndexed { i, data ->
+                    Log.d(videoTAG, "    [$i] ${data.size} bytes")
+                }
+                
+                // ACCESSIBILITY
+                Log.d(videoTAG, "  accessibilityChannel: ${format.accessibilityChannel}")
+                
+                // ADDITIONAL
+                Log.d(videoTAG, "  customData: ${format.customData}")
+                Log.d(videoTAG, "  tileCountHorizontal: ${format.tileCountHorizontal}")
+                Log.d(videoTAG, "  tileCountVertical: ${format.tileCountVertical}")
+            }
+        }
+        
+        // TEXT GROUPS DETAILED
+        val textGroups = tracks.groups.filter { it.type == TRACK_TYPE_TEXT }
+        
+        Log.d(textTAG, "\n" + "=".repeat(80))
+        Log.d(textTAG, "=== TEXT TRACKS (${textGroups.size} groups) ===")
+        Log.d(textTAG, "=".repeat(80))
+        
+        textGroups.forEachIndexed { groupIndex, group ->
+            Log.d(textTAG, "\n${"─".repeat(60)}")
+            Log.d(textTAG, "GROUP $groupIndex")
+            Log.d(textTAG, "─".repeat(60))
+            Log.d(textTAG, "type: ${getTrackTypeName(group.type)}")
+            Log.d(textTAG, "isSelected: ${group.isSelected}")
+            Log.d(textTAG, "isSupported: ${group.isSupported}")
+            Log.d(textTAG, "length: ${group.length}")
+            Log.d(textTAG, "mediaTrackGroup.length: ${group.mediaTrackGroup.length}")
+            Log.d(textTAG, "mediaTrackGroup.type: ${group.mediaTrackGroup.type}")
+            Log.d(textTAG, "mediaTrackGroup.id: ${group.mediaTrackGroup.id}")
+            
+            for (formatIndex in 0 until group.mediaTrackGroup.length) {
+                val format = group.mediaTrackGroup.getFormat(formatIndex)
+                val isTrackSelected = group.isTrackSelected(formatIndex)
+                val isTrackSupported = group.isTrackSupported(formatIndex)
+                
+                Log.d(textTAG, "\n  ${"┈".repeat(50)}")
+                Log.d(textTAG, "  FORMAT $formatIndex ${if (isTrackSelected) "★ SELECTED" else ""}")
+                Log.d(textTAG, "  ${"┈".repeat(50)}")
+                Log.d(textTAG, "  isSelected: $isTrackSelected")
+                Log.d(textTAG, "  isSupported: $isTrackSupported")
+                
+                // BASIC INFO
+                Log.d(textTAG, "  id: ${format.id}")
+                Log.d(textTAG, "  label: ${format.label}")
+                Log.d(textTAG, "  language: ${format.language}")
+                Log.d(textTAG, "  containerMimeType: ${format.containerMimeType}")
+                Log.d(textTAG, "  sampleMimeType: ${format.sampleMimeType}")
+                Log.d(textTAG, "  codecs: ${format.codecs}")
+                
+                // TEXT SPECIFIC
+                Log.d(textTAG, "  bitrate: ${format.bitrate} bps")
+                Log.d(textTAG, "  averageBitrate: ${format.averageBitrate} bps")
+                Log.d(textTAG, "  peakBitrate: ${format.peakBitrate} bps")
+                
+                // FLAGS
+                Log.d(textTAG, "  roleFlags: ${format.roleFlags} ${getRoleFlagsDescription(format.roleFlags)}")
+                Log.d(textTAG, "  selectionFlags: ${format.selectionFlags} ${getSelectionFlagsDescription(format.selectionFlags)}")
+                
+                // TIMING
+                Log.d(textTAG, "  subsampleOffsetUs: ${format.subsampleOffsetUs}")
+                
+                // METADATA
+                Log.d(textTAG, "  metadata: ${format.metadata}")
+                format.metadata?.let { metadata ->
+                    for (i in 0 until metadata.length()) {
+                        val entry = metadata.get(i)
+                        Log.d(textTAG, "    [$i] ${entry.javaClass.simpleName}: $entry")
+                    }
+                }
+                
+                // DRM
+                Log.d(textTAG, "  drmInitData: ${format.drmInitData}")
+                Log.d(textTAG, "  cryptoType: ${format.cryptoType}")
+                
+                // INIT DATA
+                Log.d(textTAG, "  initializationData.size: ${format.initializationData.size}")
+                format.initializationData.forEachIndexed { i, data ->
+                    Log.d(textTAG, "    [$i] ${data.size} bytes")
+                }
+                
+                // ACCESSIBILITY
+                Log.d(textTAG, "  accessibilityChannel: ${format.accessibilityChannel}")
+                
+                // ADDITIONAL
+                Log.d(textTAG, "  customData: ${format.customData}")
+                Log.d(textTAG, "  tileCountHorizontal: ${format.tileCountHorizontal}")
+                Log.d(textTAG, "  tileCountVertical: ${format.tileCountVertical}")
+            }
+        }
+        
+        // PLAYER STATE (moved to end)
+        Log.d(TAG, "\n" + "=".repeat(80))
+        Log.d(TAG, "=== EXOPLAYER STATE ===")
+        Log.d(TAG, "=".repeat(80))
+        
+        Log.d(TAG, "\n--- Player State ---")
+        Log.d(TAG, "isPlaying: ${player.isPlaying}")
+        Log.d(TAG, "playbackState: ${getPlaybackStateName(player.playbackState)}")
+        Log.d(TAG, "playWhenReady: ${player.playWhenReady}")
+        Log.d(TAG, "playbackSpeed: ${player.playbackParameters.speed}")
+        Log.d(TAG, "currentPosition: ${player.currentPosition}ms")
+        Log.d(TAG, "duration: ${player.duration}ms")
+        Log.d(TAG, "bufferedPosition: ${player.bufferedPosition}ms")
+        Log.d(TAG, "bufferedPercentage: ${player.bufferedPercentage}%")
+        Log.d(TAG, "isCurrentMediaItemSeekable: ${player.isCurrentMediaItemSeekable}")
+        Log.d(TAG, "isCurrentMediaItemDynamic: ${player.isCurrentMediaItemDynamic}")
+        Log.d(TAG, "isCurrentMediaItemLive: ${player.isCurrentMediaItemLive}")
+        
+        // TRACK SELECTION PARAMETERS
+        Log.d(TAG, "\n--- Track Selection Parameters ---")
+        player.trackSelectionParameters.let { params ->
+            Log.d(TAG, "preferredAudioLanguages: ${params.preferredAudioLanguages}")
+            Log.d(TAG, "preferredAudioMimeTypes: ${params.preferredAudioMimeTypes}")
+            Log.d(TAG, "preferredAudioRoleFlags: ${params.preferredAudioRoleFlags}")
+            Log.d(TAG, "maxAudioChannelCount: ${params.maxAudioChannelCount}")
+            Log.d(TAG, "maxAudioBitrate: ${params.maxAudioBitrate}")
+            Log.d(TAG, "preferredTextLanguages: ${params.preferredTextLanguages}")
+            Log.d(TAG, "preferredTextRoleFlags: ${params.preferredTextRoleFlags}")
+            Log.d(TAG, "maxVideoBitrate: ${params.maxVideoBitrate}")
+            Log.d(TAG, "maxVideoSize: ${params.maxVideoWidth}x${params.maxVideoHeight}")
+            Log.d(TAG, "maxVideoFrameRate: ${params.maxVideoFrameRate}")
+            Log.d(TAG, "forceLowestBitrate: ${params.forceLowestBitrate}")
+            Log.d(TAG, "forceHighestSupportedBitrate: ${params.forceHighestSupportedBitrate}")
+            Log.d(TAG, "ignoredTextSelectionFlags: ${params.ignoredTextSelectionFlags}")
+            Log.d(TAG, "selectUndeterminedTextLanguage: ${params.selectUndeterminedTextLanguage}")
+            Log.d(TAG, "isPrioritizeImageOverVideoEnabled: ${params.isPrioritizeImageOverVideoEnabled}")
+            
+            // Track overrides
+            Log.d(TAG, "overrides: ${params.overrides}")
+            params.overrides.forEach { (trackType, override) ->
+                Log.d(TAG, "  Override for trackType $trackType:")
+                Log.d(TAG, "    mediaTrackGroup: ${override.mediaTrackGroup}")
+                Log.d(TAG, "    trackIndices: ${override.trackIndices.joinToString()}")
+            }
+            
+            // Disabled track types
+            Log.d(TAG, "disabledTrackTypes: ${params.disabledTrackTypes}")
+        }
+        
+        // CURRENT AUDIO FORMAT
+        Log.d(TAG, "\n" + "=".repeat(80))
+        Log.d(TAG, "=== CURRENT AUDIO FORMAT (via exoPlayer.audioFormat) ===")
+        Log.d(TAG, "=".repeat(80))
+        
+        player.audioFormat?.let { currentFormat ->
+            Log.d(TAG, "id: ${currentFormat.id}")
+            Log.d(TAG, "label: ${currentFormat.label}")
+            Log.d(TAG, "language: ${currentFormat.language}")
+            Log.d(TAG, "containerMimeType: ${currentFormat.containerMimeType}")
+            Log.d(TAG, "sampleMimeType: ${currentFormat.sampleMimeType}")
+            Log.d(TAG, "codecs: ${currentFormat.codecs}")
+            Log.d(TAG, "channelCount: ${currentFormat.channelCount}")
+            Log.d(TAG, "sampleRate: ${currentFormat.sampleRate} Hz")
+            Log.d(TAG, "bitrate: ${currentFormat.bitrate} bps")
+            Log.d(TAG, "averageBitrate: ${currentFormat.averageBitrate} bps")
+            Log.d(TAG, "peakBitrate: ${currentFormat.peakBitrate} bps")
+            Log.d(TAG, "selectionFlags: ${currentFormat.selectionFlags} ${getSelectionFlagsDescription(currentFormat.selectionFlags)}")
+            Log.d(TAG, "roleFlags: ${currentFormat.roleFlags} ${getRoleFlagsDescription(currentFormat.roleFlags)}")
+        } ?: Log.d(TAG, "NULL - No audio format currently playing")
+        
+        // CURRENT VIDEO FORMAT
+        Log.d(TAG, "\n" + "=".repeat(80))
+        Log.d(TAG, "=== CURRENT VIDEO FORMAT (via exoPlayer.videoFormat) ===")
+        Log.d(TAG, "=".repeat(80))
+        
+        player.videoFormat?.let { currentFormat ->
+            Log.d(TAG, "id: ${currentFormat.id}")
+            Log.d(TAG, "label: ${currentFormat.label}")
+            Log.d(TAG, "language: ${currentFormat.language}")
+            Log.d(TAG, "containerMimeType: ${currentFormat.containerMimeType}")
+            Log.d(TAG, "sampleMimeType: ${currentFormat.sampleMimeType}")
+            Log.d(TAG, "codecs: ${currentFormat.codecs}")
+            Log.d(TAG, "width: ${currentFormat.width}")
+            Log.d(TAG, "height: ${currentFormat.height}")
+            Log.d(TAG, "frameRate: ${currentFormat.frameRate} fps")
+            Log.d(TAG, "bitrate: ${currentFormat.bitrate} bps")
+            Log.d(TAG, "averageBitrate: ${currentFormat.averageBitrate} bps")
+            Log.d(TAG, "peakBitrate: ${currentFormat.peakBitrate} bps")
+            Log.d(TAG, "pixelWidthHeightRatio: ${currentFormat.pixelWidthHeightRatio}")
+            Log.d(TAG, "rotationDegrees: ${currentFormat.rotationDegrees}")
+            Log.d(TAG, "colorInfo: ${currentFormat.colorInfo}")
+            Log.d(TAG, "selectionFlags: ${currentFormat.selectionFlags} ${getSelectionFlagsDescription(currentFormat.selectionFlags)}")
+            Log.d(TAG, "roleFlags: ${currentFormat.roleFlags} ${getRoleFlagsDescription(currentFormat.roleFlags)}")
+        } ?: Log.d(TAG, "NULL - No video format currently playing")
+        
+        Log.d(TAG, "\n" + "=".repeat(80))
+        Log.d(TAG, "=== END OF EXOPLAYER STATE ===")
+        Log.d(TAG, "=".repeat(80) + "\n")
+    }
+
+    // Helper functions
+    private fun getPlaybackStateName(state: Int): String = when (state) {
+        Player.STATE_IDLE -> "IDLE"
+        Player.STATE_BUFFERING -> "BUFFERING"
+        Player.STATE_READY -> "READY"
+        Player.STATE_ENDED -> "ENDED"
+        else -> "UNKNOWN($state)"
+    }
+
+    private fun getTrackTypeName(type: Int): String = when (type) {
+        TRACK_TYPE_AUDIO -> "AUDIO"
+        TRACK_TYPE_VIDEO -> "VIDEO"
+        TRACK_TYPE_TEXT -> "TEXT"
+        else -> "UNKNOWN($type)"
+    }
+
+    private fun getRoleFlagsDescription(flags: Int): String {
+        val roles = mutableListOf<String>()
+        if (flags and 1 != 0) roles.add("MAIN")
+        if (flags and 2 != 0) roles.add("ALTERNATE")
+        if (flags and 4 != 0) roles.add("SUPPLEMENTARY")
+        if (flags and 8 != 0) roles.add("COMMENTARY")
+        if (flags and 16 != 0) roles.add("DUB")
+        if (flags and 32 != 0) roles.add("EMERGENCY")
+        if (flags and 64 != 0) roles.add("CAPTION")
+        if (flags and 128 != 0) roles.add("SUBTITLE")
+        if (flags and 256 != 0) roles.add("SIGN")
+        if (flags and 512 != 0) roles.add("DESCRIBES_VIDEO")
+        if (flags and 1024 != 0) roles.add("DESCRIBES_MUSIC_AND_SOUND")
+        if (flags and 2048 != 0) roles.add("ENHANCED_DIALOG_INTELLIGIBILITY")
+        if (flags and 4096 != 0) roles.add("TRANSCRIBES_DIALOG")
+        if (flags and 8192 != 0) roles.add("EASY_TO_READ")
+        if (flags and 16384 != 0) roles.add("TRICK_PLAY")
+        return if (roles.isEmpty()) "" else "[${roles.joinToString(",")}]"
+    }
+
+    private fun getSelectionFlagsDescription(flags: Int): String {
+        val selections = mutableListOf<String>()
+        if (flags and 1 != 0) selections.add("DEFAULT")
+        if (flags and 2 != 0) selections.add("FORCED")
+        if (flags and 4 != 0) selections.add("AUTOSELECT")
+        return if (selections.isEmpty()) "" else "[${selections.joinToString(",")}]"
     }
 
 }
