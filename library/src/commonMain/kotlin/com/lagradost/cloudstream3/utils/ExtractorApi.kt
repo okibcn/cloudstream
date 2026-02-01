@@ -881,7 +881,7 @@ suspend fun loadExtractor(
     
     // CS3debug
     val TAG = "CS3debug"
-    Log.d(TAG, "Url: $url")
+    Log.d(TAG, "URL: $url")
     
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
@@ -889,7 +889,7 @@ suspend fun loadExtractor(
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
             Log.d(TAG, "  → Trying extractor: ${extractor.name}")
             try {
-                val decodedUrl = extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
                 Log.d(TAG, "  ✓ Decoded successfully")
                 return true
             } catch (e: Exception) {
