@@ -22,6 +22,7 @@ open class Mp4Upload : ExtractorApi() {
         val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
             "$mainUrl/embed-$id.html"
         } ?: url
+        Log.d("CS3debug","  MP4Upload inputURL: $realUrl")
         val response = app.get(realUrl)
         val unpackedText = getAndUnpack(response.text)
         val quality =
