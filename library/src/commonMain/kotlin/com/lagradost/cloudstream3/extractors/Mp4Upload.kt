@@ -24,6 +24,7 @@ open class Mp4Upload : ExtractorApi() {
         } ?: url
         Log.d("CS3debug","  MP4Upload inputURL: $realUrl")
         val response = app.get(realUrl)
+        if (response == nul)  Log.d("CS3debug","  MP4Upload Cant retrieve: $realUrl")
         val unpackedText = getAndUnpack(response.text)
         Log.d("CS3debug","  MP4Upload HTML: $unpackedText")
         val quality =
