@@ -25,30 +25,31 @@ open class Mp4Upload : ExtractorApi() {
         Log.d("CS3debug","  MP4Upload inputURL: $realUrl")
         val response = app.get(realUrl)
         val unpackedText = getAndUnpack(response.text)
-        Log.d("CS3debug","  MP4Upload HTML: $unpackedText")
         val quality =
             unpackedText.lowercase().substringAfter(" height=").substringBefore(" ").toIntOrNull()
+            
         srcRegex.find(unpackedText)?.groupValues?.get(1)?.let { link ->
+            Log.d("CS3debug","decoded URL1: $link")
             return listOf(
                 newExtractorLink(
                     name,
                     name,
                     link,
                 ) {
-                    this.referer = "https://www.mp4upload.com/"
+                    this.referer = url
                     this.quality = quality ?: Qualities.Unknown.value
                 }
             )
         }
         srcRegex2.find(unpackedText)?.groupValues?.get(1)?.let { link ->
-            Log.d("CS3debug","decoded URL: $link")
+            Log.d("CS3debug","decoded URL2: $link")
             return listOf(
                 newExtractorLink(
                     name,
                     name,
                     link,
                 ) {
-                    this.referer = "https://www.mp4upload.com/"
+                    this.referer = url
                     this.quality = quality ?: Qualities.Unknown.value
                 }
             )
