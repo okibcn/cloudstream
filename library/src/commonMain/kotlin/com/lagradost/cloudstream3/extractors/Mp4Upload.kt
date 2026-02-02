@@ -35,7 +35,7 @@ open class Mp4Upload : ExtractorApi() {
                     name,
                     link,
                 ) {
-                    this.referer = url
+                    this.referer = "https://www.mp4upload.com/"
                     this.quality = quality ?: Qualities.Unknown.value
                 }
             )
@@ -48,7 +48,7 @@ open class Mp4Upload : ExtractorApi() {
                     name,
                     link,
                 ) {
-                    this.referer = url
+                    this.referer = "https://www.mp4upload.com/"
                     this.quality = quality ?: Qualities.Unknown.value
                 }
             )
