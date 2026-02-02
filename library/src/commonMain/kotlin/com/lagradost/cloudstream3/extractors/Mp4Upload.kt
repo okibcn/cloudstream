@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.getAndUnpack
 import com.lagradost.cloudstream3.utils.newExtractorLink
 
+import android.util.Log
+
 open class Mp4Upload : ExtractorApi() {
     override var name = "Mp4Upload"
     override var mainUrl = "https://www.mp4upload.com"
