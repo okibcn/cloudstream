@@ -45,6 +45,26 @@ open class FilemoonV2 : ExtractorApi() {
             "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
         )
 
+
+        val iframeResolver = WebViewResolver(
+            interceptUrl = Regex(url.substringAfterLast("/")),
+            additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
+            useOkhttp = false,
+            timeout = 15_000L
+        )
+        val interceptedIframeUrl = app.get(
+            url,
+            defaultHeaders,
+            interceptor = resolver
+        ).url
+        Log.d("CS3debugFilemoonV2", "interceptedURLs: ${interceptedIframeUrl}")
+
+
+
+
+
+
+
         val resolver = WebViewResolver(
             interceptUrl = Regex("""(m3u8|master\.txt)"""),
             additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
