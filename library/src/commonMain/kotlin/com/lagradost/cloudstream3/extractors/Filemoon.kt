@@ -31,6 +31,11 @@ open class FilemoonV2 : ExtractorApi() {
     override var mainUrl = "https://filemoon.to"
     override val requiresReferer = true
 
+open class FilemoonV2 : ExtractorApi() {
+    override var name = "Filemoon"
+    override var mainUrl = "https://filemoon.to"
+    override val requiresReferer = true
+
     override suspend fun getUrl(
         url: String,
         referer: String?,
@@ -45,18 +50,26 @@ open class FilemoonV2 : ExtractorApi() {
             "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
         )
 
+        val resolver = WebViewResolver(
+            interceptUrl = Regex("""(m3u8|master\.txt)"""),
+            additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
+            useOkhttp = false,
+            timeout = 15_000L
+        )
+
         val initialResponse = app.get(url, defaultHeaders)
         val iframeSrcUrl = initialResponse.document.selectFirst("iframe")?.attr("src")
 
         if (iframeSrcUrl.isNullOrEmpty()) {
+            // No iframe found - try unpacking script
             val fallbackScriptData = initialResponse.document
                 .selectFirst("script:containsData(function(p,a,c,k,e,d))")
                 ?.data().orEmpty()
             val unpackedScript = JsUnpacker(fallbackScriptData).unpack()
 
             val videoUrl = unpackedScript?.let {
-                Regex("""sources:\[\{file:"(.*?)"""")  //")
-                .find(it)?.groupValues?.get(1)
+                Regex("""sources:\[\{file:"(.*?)"""")
+                    .find(it)?.groupValues?.get(1)
             }
 
             if (!videoUrl.isNullOrEmpty()) {
@@ -68,60 +81,70 @@ open class FilemoonV2 : ExtractorApi() {
                     headers = defaultHeaders
                 ).forEach(callback)
             } else {
-                Log.d("CS3debugFilemoonV2", "No iframe and no video URL found in script fallback.")
+                // Last-resort fallback using WebView interception
+                val interceptedUrl = app.get(
+                    url,
+                    referer = url,
+                    interceptor = resolver
+                ).url
+
+                if (interceptedUrl.isNotEmpty()) {
+                    Log.d("CS3debugFilemoonV2", "CASE 2: no iframe, Intercepted URL $interceptedUrl")
+                    M3u8Helper.generateM3u8(
+                        name,
+                        interceptedUrl,
+                        mainUrl,
+                        headers = defaultHeaders
+                    ).forEach(callback)
+                } else {
+                    Log.d("CS3debugFilemoonV2", "FAILURE: No iframe, no sources, and no URL intercepted in WebView.")
+                }
             }
-            return
-        }
-
-        // If iframe was found, continue processing
-        val iframeHeaders = defaultHeaders + ("Accept-Language" to "en-US,en;q=0.5")
-        val iframeResponse = app.get(iframeSrcUrl, headers = iframeHeaders)
-
-        val iframeScriptData = iframeResponse.document
-            .selectFirst("script:containsData(function(p,a,c,k,e,d))")
-            ?.data().orEmpty()
-
-        val unpackedScript = JsUnpacker(iframeScriptData).unpack()
-
-        val videoUrl = unpackedScript?.let {
-            Regex("""sources:\[\{file:"(.*?)"""")     //")
-            .find(it)?.groupValues?.get(1)
-        }
-
-        if (!videoUrl.isNullOrEmpty()) {
-            Log.d("CS3debugFilemoonV2", "CASE 2: iframe then sources: URL $videoUrl")
-            M3u8Helper.generateM3u8(
-                name,
-                videoUrl,
-                mainUrl,
-                headers = defaultHeaders
-            ).forEach(callback)
         } else {
-            // Last-resort fallback using WebView interception
-            val resolver = WebViewResolver(
-                interceptUrl = Regex("""(m3u8|master\.txt)"""),
-                additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
-                useOkhttp = false,
-                timeout = 15_000L
-            )
+            // Iframe was found - process it
+            val iframeHeaders = defaultHeaders + ("Accept-Language" to "en-US,en;q=0.5")
+            val iframeResponse = app.get(iframeSrcUrl, headers = iframeHeaders)
 
-            val interceptedUrl = app.get(
-                iframeSrcUrl,
-                referer = url,
-                interceptor = resolver
-            ).url
+            val iframeScriptData = iframeResponse.document
+                .selectFirst("script:containsData(function(p,a,c,k,e,d))")
+                ?.data().orEmpty()
 
-            if (interceptedUrl.isNotEmpty()) {
-                Log.d("CS3debugFilemoonV2", "CASE 3: Intercepted URL $interceptedUrl")
+            val unpackedScript = JsUnpacker(iframeScriptData).unpack()
+
+            val videoUrl = unpackedScript?.let {
+                Regex("""sources:\[\{file:"(.*?)"""")
+                    .find(it)?.groupValues?.get(1)
+            }
+
+            if (!videoUrl.isNullOrEmpty()) {
+                Log.d("CS3debugFilemoonV2", "CASE 3: iframe then sources: URL $videoUrl")
                 M3u8Helper.generateM3u8(
                     name,
-                    interceptedUrl,
+                    videoUrl,
                     mainUrl,
                     headers = defaultHeaders
                 ).forEach(callback)
             } else {
-                Log.d("CS3debugFilemoonV2", "No video URL intercepted in WebView fallback.")
+                // Last-resort fallback using WebView interception (reusing resolver from top)
+                val interceptedUrl = app.get(
+                    iframeSrcUrl,
+                    referer = url,
+                    interceptor = resolver
+                ).url
+
+                if (interceptedUrl.isNotEmpty()) {
+                    Log.d("CS3debugFilemoonV2", "CASE 4: iframe, no sources, and Intercepted URL $interceptedUrl")
+                    M3u8Helper.generateM3u8(
+                        name,
+                        interceptedUrl,
+                        mainUrl,
+                        headers = defaultHeaders
+                    ).forEach(callback)
+                } else {
+                    Log.d("CS3debugFilemoonV2", "FAILURE: iframe, no sources, and no URL intercepted in WebView.")
+                }
             }
         }
     }
 }
+
