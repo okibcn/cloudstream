@@ -53,17 +53,19 @@ open class FilemoonV2 : ExtractorApi() {
         )
 
         val initialResponse = app.get(url, defaultHeaders)
+        val html1 = videoUrlinitialResponse.document.html()
+        Log.d("CS3debugFilemoonV2", "HTML1: ${html1}")
         val iframeSrcUrl = initialResponse.document.selectFirst("iframe")?.attr("src")
 
         if (iframeSrcUrl.isNullOrEmpty()) {
             // No iframe found - try unpacking script
-            val fallbackScriptData = initialResponse.document
+            val fallbackScriptData = 
                 .selectFirst("script:containsData(function(p,a,c,k,e,d))")
                 ?.data().orEmpty()
             val unpackedScript = JsUnpacker(fallbackScriptData).unpack()
 
             val videoUrl = unpackedScript?.let {
-                Regex("""sources:\[\{file:"(.*?)"""")
+                Regex("""sources:\[\{file:"(.*?)"""")  //")
                     .find(it)?.groupValues?.get(1)
             }
 
