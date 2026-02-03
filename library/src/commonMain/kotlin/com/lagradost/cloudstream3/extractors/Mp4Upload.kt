@@ -53,8 +53,8 @@ open class Mp4Upload : ExtractorApi() {
                     this.referer = url
                     this.quality = res ?: Qualities.Unknown.value
                 }
-            return
             )
+            // return
         }
 
 
@@ -84,6 +84,6 @@ open class Mp4Upload : ExtractorApi() {
         //         }
         //     )
         // }
-        return
+        // return
     }
 }
