@@ -2,6 +2,10 @@ package com.lagradost.cloudstream3.extractors
 
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.app
+import com.lagradost.cloudstream3.utils.newExtractorLink
+import com.lagradost.cloudstream3.utils.ExtractorApi
+
+import android.util.Log
 
 class Uqload1 : Uqload() {
     override var mainUrl = "https://uqload.com"
@@ -20,11 +24,11 @@ class Uqloadbz : Uqload() {
 }
 
 open class Uqload : ExtractorApi() {
-    override val name: String = "Uqload"
-    override val mainUrl: String = "https://www.uqload.com"
-    private val srcRegex = Regex("""sources:.\["(.*?)\"]""")  // would be possible to use the parse and find src attribute
+    override var name: String = "Uqload"
+    override var mainUrl: String = "https://www.uqload.com"
     override val requiresReferer = true
 
+    private val  srcRegex = Regex("""sources:.\["(.*?)"\]""")  // would be possible to use the parse and find src attribute
 
     override suspend fun getUrl(
         url: String,
