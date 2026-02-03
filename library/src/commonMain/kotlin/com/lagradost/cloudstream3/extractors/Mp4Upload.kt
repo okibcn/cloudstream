@@ -50,7 +50,7 @@ open class Mp4Upload : ExtractorApi() {
                     name = name,
                     url = link
                 ) {
-                    this.referer = url
+                    this.referer = mainUrl
                     this.quality = res ?: Qualities.Unknown.value
                 }
             )
