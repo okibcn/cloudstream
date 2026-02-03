@@ -60,7 +60,7 @@ open class FilemoonV2 : ExtractorApi() {
             }
 
             if (!videoUrl.isNullOrEmpty()) {
-                Log.d("CS3debugFilemoonV2", "CASE 1: no iframe, sources: $interceptedUrl")
+                Log.d("CS3debugFilemoonV2", "CASE 1: no iframe, sources: $videoUrl")
                 M3u8Helper.generateM3u8(
                     name,
                     videoUrl,
@@ -89,7 +89,7 @@ open class FilemoonV2 : ExtractorApi() {
         }
 
         if (!videoUrl.isNullOrEmpty()) {
-            Log.d("CS3debugFilemoonV2", "CASE 2: iframe then sources: URL $interceptedUrl")
+            Log.d("CS3debugFilemoonV2", "CASE 2: iframe then sources: URL $videoUrl")
             M3u8Helper.generateM3u8(
                 name,
                 videoUrl,
