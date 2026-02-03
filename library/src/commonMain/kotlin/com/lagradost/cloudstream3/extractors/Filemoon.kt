@@ -31,11 +31,6 @@ open class FilemoonV2 : ExtractorApi() {
     override var mainUrl = "https://filemoon.to"
     override val requiresReferer = true
 
-open class FilemoonV2 : ExtractorApi() {
-    override var name = "Filemoon"
-    override var mainUrl = "https://filemoon.to"
-    override val requiresReferer = true
-
     override suspend fun getUrl(
         url: String,
         referer: String?,
@@ -147,4 +142,3 @@ open class FilemoonV2 : ExtractorApi() {
         }
     }
 }
-
