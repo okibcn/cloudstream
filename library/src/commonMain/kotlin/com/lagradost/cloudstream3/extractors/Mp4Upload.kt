@@ -30,20 +30,19 @@ open class Mp4Upload : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-    // override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
             "$mainUrl/embed-$id.html"
         } ?: url
         Log.d("CS3debug","  MP4Upload inputURL: $realUrl")
+
         val response = app.get(realUrl)
-        if (response == null)  Log.d("CS3debug","  MP4Upload Cant retrieve: $realUrl")
         val unpackedText = getAndUnpack(response.text)
         val res = unpackedText.lowercase()
             .substringAfter(" height=").substringBefore(" ")
             .toIntOrNull()
 
         srcRegex.find(unpackedText)?.groupValues?.get(1)?.let { link ->
-            Log.d("CS3debug","decoded URL1: $link")
+            Log.d("CS3debug","decoded URL: $link")
             callback.invoke(
                 newExtractorLink(
                     source = name,
