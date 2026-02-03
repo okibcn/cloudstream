@@ -886,7 +886,7 @@ suspend fun loadExtractor(
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
-        if currentUrl.contains("mp4upload") Log.d(TAG, "Comparing $currentUrl with: $index - ${extractor.name}")
+        if (currentUrl.contains("mp4upload")) Log.d(TAG, "Comparing $currentUrl with: $index - ${extractor.name}")
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
             Log.d(TAG, "  → Found extractor: ${extractor.name}")
             try {
