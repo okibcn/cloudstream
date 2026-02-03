@@ -181,7 +181,8 @@ open class StreamWishExtractor : ExtractorApi() {
         }
 
         val directStreamUrl = playerScriptData?.let {
-            Regex("""file:\s*"(.*?m3u8.*?)"""").find(it)?.groupValues?.getOrNull(1)
+            Regex("""file:\s*"(.*?m3u8.*?)"""")   //")
+                .find(it)?.groupValues?.getOrNull(1)
         }
 
         if (!directStreamUrl.isNullOrEmpty()) {

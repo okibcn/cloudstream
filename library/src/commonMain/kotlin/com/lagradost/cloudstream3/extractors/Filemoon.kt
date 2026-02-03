@@ -57,8 +57,9 @@ open class FilemoonV2 : ExtractorApi() {
         val theEndingKey = url.substringAfterLast("/")
 
         val iframeResolver = WebViewResolver(
-            interceptUrl = Regex("""(https://9n8o\.com/.*?${theEndingKey})"""),
-            additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
+            // interceptUrl = Regex("""(https://9n8o\.com/.*?${theEndingKey})"""),
+            interceptUrl = Regex("""txt|m3u8"""),
+            additionalUrls = listOf(Regex("""txt|m3u8""")),
             useOkhttp = false,
             timeout = 15_000L
         )
