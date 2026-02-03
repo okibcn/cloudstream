@@ -80,7 +80,7 @@ open class FilemoonV2 : ExtractorApi() {
 
         if (iframeSrcUrl.isNullOrEmpty()) {
             // No iframe found - try unpacking script
-            val fallbackScriptData = 
+            val fallbackScriptData = initialResponse.document
                 .selectFirst("script:containsData(function(p,a,c,k,e,d))")
                 ?.data().orEmpty()
             val unpackedScript = JsUnpacker(fallbackScriptData).unpack()
