@@ -78,8 +78,8 @@ open class FilemoonV2 : ExtractorApi() {
 
 
         val initialResponse = app.get(url, defaultHeaders)
-        val html1 = initialResponse.document.html()
-        Log.d("CS3debugFilemoonV2", "HTML1: ${html1}")
+        // val html1 = initialResponse.document.html()
+        // Log.d("CS3debugFilemoonV2", "HTML1: ${html1}")
         val iframeSrcUrl = initialResponse.document.selectFirst("iframe")?.attr("src")
 
         if (iframeSrcUrl.isNullOrEmpty()) {
