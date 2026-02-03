@@ -31,9 +31,9 @@ open class Mp4Upload : ExtractorApi() {
         callback: (ExtractorLink) -> Unit
     ) {
         val defaultHeaders = mapOf(
-            "Referer" to url,
+            "Referer" to mainUrl,
             "Sec-Fetch-Dest" to "video",
-            "Sec-Fetch-Mode" to "navigate",
+            "Sec-Fetch-Mode" to "no-cors",
             "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
         )
         val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
