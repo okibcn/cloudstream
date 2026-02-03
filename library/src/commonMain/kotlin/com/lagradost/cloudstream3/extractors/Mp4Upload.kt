@@ -38,9 +38,9 @@ open class Mp4Upload : ExtractorApi() {
         val response = app.get(realUrl)
         if (response == null)  Log.d("CS3debug","  MP4Upload Cant retrieve: $realUrl")
         val unpackedText = getAndUnpack(response.text)
-        Log.d("CS3debug","  MP4Upload HTML: $unpackedText")
-        val res =
-            unpackedText.lowercase().substringAfter(" height=").substringBefore(" ").toIntOrNull()
+        val res = unpackedText.lowercase()
+            .substringAfter(" height=").substringBefore(" ")
+            .toIntOrNull()
 
         srcRegex.find(unpackedText)?.groupValues?.get(1)?.let { link ->
             Log.d("CS3debug","decoded URL1: $link")
@@ -51,6 +51,11 @@ open class Mp4Upload : ExtractorApi() {
                     url = link
                 ) {
                     this.referer = mainUrl
+                    this.headers = mutableMapOf(
+                        "Referer" to "https://www.mp4upload.com/",
+                        "Sec-Fetch-Dest" to "video",
+                        "Sec-Fetch-Mode" to "no-cors"
+                    )       
                     this.quality = res ?: Qualities.Unknown.value
                 }
             )
