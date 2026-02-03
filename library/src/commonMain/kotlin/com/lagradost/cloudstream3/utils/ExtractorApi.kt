@@ -869,6 +869,71 @@ suspend fun loadExtractor(
  * Tries to load the appropriate extractor based on link, returns true if any extractor is loaded.
  * */
 @Throws(CancellationException::class)
+// suspend fun loadExtractor(
+//     url: String,
+//     referer: String? = null,
+//     subtitleCallback: (SubtitleFile) -> Unit,
+//     callback: (ExtractorLink) -> Unit
+// ): Boolean {
+//     // Ensure this coroutine has not timed out
+//     coroutineScope { ensureActive() }
+
+//     val currentUrl = unshortenLinkSafe(url)
+//     val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
+    
+//     // CS3debug
+//     val TAG = "CS3debug"
+//     Log.d(TAG, "LOADEXTRACTOR: $url")
+    
+//     // Iterate in reverse order so the new registered ExtractorApi takes priority
+//     for (index in extractorApis.lastIndex downTo 0) {
+//         val extractor = extractorApis[index]
+//         if (currentUrl.contains("mp4upload")) Log.d(TAG, "Comparing $compareUrl with: $index - ${extractor.mainUrl}")
+//         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
+//             Log.d(TAG, "  → Found extractor: ${extractor.name}")
+//             try {
+//                 extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+//                 Log.d(TAG, "  ✓ Decoded successfully")
+//                 return true
+//             } catch (e: Exception) {
+//                 Log.d(TAG, "  ✗ Error: ${e.message}")
+//                 logError(e)
+//                 // Rethrow if we have timed out
+//                 if (e is CancellationException) {
+//                     throw e
+//                 }
+//             }
+//         }
+//     }
+
+//     Log.d(TAG, "  → Trying fuzzy search...")
+//     // this is to match mirror domains - like example.com, example.net
+//     for (index in extractorApis.lastIndex downTo 0) {
+//         val extractor = extractorApis[index]
+//         if (FuzzySearch.partialRatio(
+//                 extractor.mainUrl,
+//                 currentUrl
+//             ) > 80
+//         ) {
+//             Log.d(TAG, "  → Fuzzy match found: ${extractor.name}")
+//             try {
+//                 extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+//                 Log.d(TAG, "  ✓ Decoded via fuzzy search")
+//                 return true
+//             } catch (e: Exception) {
+//                 Log.d(TAG, "  ✗ Fuzzy error: ${e.message}")
+//                 logError(e)
+//                 // Rethrow if we have timed out
+//                 if (e is CancellationException) {
+//                     throw e
+//                 }
+//             }
+//         }
+//     }
+
+//     Log.d(TAG, "  ✕ No extractor found")
+//     return false
+// }
 suspend fun loadExtractor(
     url: String,
     referer: String? = null,
@@ -885,6 +950,34 @@ suspend fun loadExtractor(
     val TAG = "CS3debug"
     Log.d(TAG, "LOADEXTRACTOR: $url")
     
+    // Create debug wrapper for callback
+    val debugCallback: (ExtractorLink) -> Unit = { link ->
+        Log.d(TAG, "  ┌─ ExtractorLink returned:")
+        Log.d(TAG, "  │ name: ${link.name}")
+        Log.d(TAG, "  │ source: ${link.source}")
+        Log.d(TAG, "  │ url: ${link.url}")
+        Log.d(TAG, "  │ referer: ${link.referer}")
+        Log.d(TAG, "  │ quality: ${link.quality}")
+        Log.d(TAG, "  │ isM3u8: ${link.isM3u8}")
+        Log.d(TAG, "  │ headers: ${link.headers}")
+        Log.d(TAG, "  │ extractorData: ${link.extractorData}")
+        Log.d(TAG, "  └─")
+        
+        // Call the original callback
+        callback(link)
+    }
+    
+    // Create debug wrapper for subtitles
+    val debugSubtitleCallback: (SubtitleFile) -> Unit = { sub ->
+        Log.d(TAG, "  ┌─ SubtitleFile returned:")
+        Log.d(TAG, "  │ lang: ${sub.lang}")
+        Log.d(TAG, "  │ url: ${sub.url}")
+        Log.d(TAG, "  └─")
+        
+        // Call the original callback
+        subtitleCallback(sub)
+    }
+    
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
@@ -892,7 +985,7 @@ suspend fun loadExtractor(
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
             Log.d(TAG, "  → Found extractor: ${extractor.name}")
             try {
-                extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                extractor.getUrl(currentUrl, referer, debugSubtitleCallback, debugCallback)
                 Log.d(TAG, "  ✓ Decoded successfully")
                 return true
             } catch (e: Exception) {
@@ -917,7 +1010,7 @@ suspend fun loadExtractor(
         ) {
             Log.d(TAG, "  → Fuzzy match found: ${extractor.name}")
             try {
-                extractor.getUrl(currentUrl, referer, subtitleCallback, callback)
+                extractor.getUrl(currentUrl, referer, debugSubtitleCallback, debugCallback)
                 Log.d(TAG, "  ✓ Decoded via fuzzy search")
                 return true
             } catch (e: Exception) {
@@ -934,6 +1027,8 @@ suspend fun loadExtractor(
     Log.d(TAG, "  ✕ No extractor found")
     return false
 }
+
+
 
 val extractorApis: MutableList<ExtractorApi> = arrayListOf(
     //AllProvider(),
