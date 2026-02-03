@@ -30,6 +30,12 @@ open class Mp4Upload : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
+        val defaultHeaders = mapOf(
+            "Referer" to url,
+            "Sec-Fetch-Dest" to "video",
+            "Sec-Fetch-Mode" to "navigate",
+            "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
+        )
         val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
             "$mainUrl/embed-$id.html"
         } ?: url
@@ -50,10 +56,7 @@ open class Mp4Upload : ExtractorApi() {
                     url = link
                 ) {
                     this.referer = mainUrl
-                    this.headers = mutableMapOf(
-                        // "Referer" to "https://www.mp4upload.com/",
-                        "Sec-Fetch-Dest" to "video",
-                        "Sec-Fetch-Mode" to "no-cors"
+                    this.headers = defaultHeader
                     )       
                     this.quality = res ?: Qualities.Unknown.value
                 }

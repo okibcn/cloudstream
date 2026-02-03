@@ -55,10 +55,12 @@ open class FilemoonV2 : ExtractorApi() {
             val unpackedScript = JsUnpacker(fallbackScriptData).unpack()
 
             val videoUrl = unpackedScript?.let {
-                Regex("""sources:\[\{file:"(.*?)"""").find(it)?.groupValues?.get(1)
+                Regex("""sources:\[\{file:"(.*?)"""")  //")
+                .find(it)?.groupValues?.get(1)
             }
 
             if (!videoUrl.isNullOrEmpty()) {
+                Log.d("CS3debugFilemoonV2", "CASE 1: no iframe, sources: $interceptedUrl")
                 M3u8Helper.generateM3u8(
                     name,
                     videoUrl,
@@ -66,7 +68,7 @@ open class FilemoonV2 : ExtractorApi() {
                     headers = defaultHeaders
                 ).forEach(callback)
             } else {
-                Log.d("FilemoonV2", "No iframe and no video URL found in script fallback.")
+                Log.d("CS3debugFilemoonV2", "No iframe and no video URL found in script fallback.")
             }
             return
         }
@@ -82,10 +84,12 @@ open class FilemoonV2 : ExtractorApi() {
         val unpackedScript = JsUnpacker(iframeScriptData).unpack()
 
         val videoUrl = unpackedScript?.let {
-            Regex("""sources:\[\{file:"(.*?)"""").find(it)?.groupValues?.get(1)
+            Regex("""sources:\[\{file:"(.*?)"""")     //")
+            .find(it)?.groupValues?.get(1)
         }
 
         if (!videoUrl.isNullOrEmpty()) {
+            Log.d("CS3debugFilemoonV2", "CASE 2: iframe then sources: URL $interceptedUrl")
             M3u8Helper.generateM3u8(
                 name,
                 videoUrl,
@@ -108,6 +112,7 @@ open class FilemoonV2 : ExtractorApi() {
             ).url
 
             if (interceptedUrl.isNotEmpty()) {
+                Log.d("CS3debugFilemoonV2", "CASE 3: Intercepted URL $interceptedUrl")
                 M3u8Helper.generateM3u8(
                     name,
                     interceptedUrl,
@@ -115,7 +120,7 @@ open class FilemoonV2 : ExtractorApi() {
                     headers = defaultHeaders
                 ).forEach(callback)
             } else {
-                Log.d("FilemoonV2", "No video URL intercepted in WebView fallback.")
+                Log.d("CS3debugFilemoonV2", "No video URL intercepted in WebView fallback.")
             }
         }
     }
