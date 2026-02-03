@@ -51,7 +51,7 @@ open class Mp4Upload : ExtractorApi() {
                 ) {
                     this.referer = mainUrl
                     this.headers = mutableMapOf(
-                        "Referer" to "https://www.mp4upload.com/",
+                        // "Referer" to "https://www.mp4upload.com/",
                         "Sec-Fetch-Dest" to "video",
                         "Sec-Fetch-Mode" to "no-cors"
                     )       

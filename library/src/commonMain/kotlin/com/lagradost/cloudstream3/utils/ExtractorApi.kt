@@ -283,6 +283,8 @@ import com.lagradost.cloudstream3.extractors.Vidguardto3
 import com.lagradost.cloudstream3.extractors.VidhideExtractor
 import com.lagradost.cloudstream3.extractors.Vidmoly
 import com.lagradost.cloudstream3.extractors.Vidmolyme
+import com.lagradost.cloudstream3.extractors.Vidmolyto
+import com.lagradost.cloudstream3.extractors.Vidmolybiz
 import com.lagradost.cloudstream3.extractors.Vidnest
 import com.lagradost.cloudstream3.extractors.Vido
 import com.lagradost.cloudstream3.extractors.Vidoza
@@ -886,7 +888,7 @@ suspend fun loadExtractor(
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {
         val extractor = extractorApis[index]
-        if (currentUrl.contains("mp4upload")) Log.d(TAG, "Comparing $comparetUrl with: $index - ${extractor.mainUrl}")
+        if (currentUrl.contains("mp4upload")) Log.d(TAG, "Comparing $compareUrl with: $index - ${extractor.mainUrl}")
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
             Log.d(TAG, "  → Found extractor: ${extractor.name}")
             try {
