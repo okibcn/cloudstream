@@ -44,6 +44,7 @@ open class FilemoonV2 : ExtractorApi() {
             "Sec-Fetch-Site" to "cross-site",
             "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
         )
+        val iframeHeaders = defaultHeaders + ("Accept-Language" to "en-US,en;q=0.5")
 
 
         val iframeResolver = WebViewResolver(
@@ -54,8 +55,8 @@ open class FilemoonV2 : ExtractorApi() {
         )
         val interceptedIframeUrl = app.get(
             url,
-            defaultHeaders,
-            interceptor = resolver
+            iframeHeaders,
+            interceptor = iframeResolver
         ).url
         Log.d("CS3debugFilemoonV2", "interceptedURLs: ${interceptedIframeUrl}")
 
@@ -73,7 +74,7 @@ open class FilemoonV2 : ExtractorApi() {
         )
 
         val initialResponse = app.get(url, defaultHeaders)
-        val html1 = videoUrlinitialResponse.document.html()
+        val html1 = initialResponse.document.html()
         Log.d("CS3debugFilemoonV2", "HTML1: ${html1}")
         val iframeSrcUrl = initialResponse.document.selectFirst("iframe")?.attr("src")
 
@@ -119,7 +120,6 @@ open class FilemoonV2 : ExtractorApi() {
             }
         } else {
             // Iframe was found - process it
-            val iframeHeaders = defaultHeaders + ("Accept-Language" to "en-US,en;q=0.5")
             val iframeResponse = app.get(iframeSrcUrl, headers = iframeHeaders)
 
             val iframeScriptData = iframeResponse.document
