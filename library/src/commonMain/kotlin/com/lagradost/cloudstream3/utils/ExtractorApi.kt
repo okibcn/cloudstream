@@ -254,6 +254,8 @@ import com.lagradost.cloudstream3.extractors.UpstreamExtractor
 import com.lagradost.cloudstream3.extractors.Uqload
 import com.lagradost.cloudstream3.extractors.Uqload1
 import com.lagradost.cloudstream3.extractors.Uqload2
+import com.lagradost.cloudstream3.extractors.Uqloadcx
+import com.lagradost.cloudstream3.extractors.Uqloadbz
 import com.lagradost.cloudstream3.extractors.UqloadsXyz
 import com.lagradost.cloudstream3.extractors.Urochsunloath
 import com.lagradost.cloudstream3.extractors.Userload
@@ -1108,6 +1110,8 @@ val extractorApis: MutableList<ExtractorApi> = arrayListOf(
     Uqload(),
     Uqload1(),
     Uqload2(),
+    Uqloadcx(),
+    Uqloadbz(),
     Evoload(),
     Evoload1(),
     UpstreamExtractor(),
