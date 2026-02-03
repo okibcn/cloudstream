@@ -881,7 +881,7 @@ suspend fun loadExtractor(
     
     // CS3debug
     val TAG = "CS3debug"
-    Log.d(TAG, "URL: $url")
+    Log.d(TAG, "LOADEXTRACTOR: $url")
     
     // Iterate in reverse order so the new registered ExtractorApi takes priority
     for (index in extractorApis.lastIndex downTo 0) {

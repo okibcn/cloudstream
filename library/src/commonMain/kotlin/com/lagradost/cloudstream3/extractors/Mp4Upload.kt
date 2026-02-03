@@ -12,13 +12,22 @@ import android.util.Log
 open class Mp4Upload : ExtractorApi() {
     override var name = "Mp4Upload"
     override var mainUrl = "https://www.mp4upload.com"
-    private val srcRegex = Regex("""player\.src\("(.*?)"""")
+    private val srcRegex = Regex("""src:\s*"([^"]+)"""")
+    // private val srcRegex = Regex("""player\.src\("(.*?)"""")
     private val srcRegex2 = Regex("""player\.src\([\w\W]*src: "(.*?)"""")
 
     override val requiresReferer = true
     private val idMatch = Regex("""mp4upload\.com/(embed-|)([A-Za-z0-9]*)""")
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+
+
+    override suspend fun getUrl(
+        url: String,
+        referer: String?,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit
+    ) {
+    // override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
             "$mainUrl/embed-$id.html"
         } ?: url
@@ -27,35 +36,64 @@ open class Mp4Upload : ExtractorApi() {
         if (response == null)  Log.d("CS3debug","  MP4Upload Cant retrieve: $realUrl")
         val unpackedText = getAndUnpack(response.text)
         Log.d("CS3debug","  MP4Upload HTML: $unpackedText")
-        val quality =
+        val res =
             unpackedText.lowercase().substringAfter(" height=").substringBefore(" ").toIntOrNull()
 
         srcRegex.find(unpackedText)?.groupValues?.get(1)?.let { link ->
             Log.d("CS3debug","decoded URL1: $link")
-            return listOf(
+            callback.invoke(
                 newExtractorLink(
-                    name,
-                    name,
-                    link,
+                    source = name,
+                    name = name,
+                    url = link
                 ) {
                     this.referer = url
-                    this.quality = quality ?: Qualities.Unknown.value
+                    this.quality = res ?: Qualities.Unknown.value
                 }
+            return
             )
-        }
         srcRegex2.find(unpackedText)?.groupValues?.get(1)?.let { link ->
             Log.d("CS3debug","decoded URL2: $link")
-            return listOf(
+            callback.invoke(
                 newExtractorLink(
-                    name,
-                    name,
-                    link,
+                    source = name,
+                    name = name,
+                    url = link
                 ) {
                     this.referer = url
-                    this.quality = quality ?: Qualities.Unknown.value
+                    this.quality = res ?: Qualities.Unknown.value
                 }
+            return
             )
         }
-        return null
+
+
+        // srcRegex.find(unpackedText)?.groupValues?.get(1)?.let { link ->
+        //     Log.d("CS3debug","decoded URL1: $link")
+        //     return listOf(
+        //         newExtractorLink(
+        //             name,
+        //             name,
+        //             link,
+        //         ) {
+        //             this.referer = url
+        //             this.quality = quality ?: Qualities.Unknown.value
+        //         }
+        //     )
+        // }
+        // srcRegex2.find(unpackedText)?.groupValues?.get(1)?.let { link ->
+        //     Log.d("CS3debug","decoded URL2: $link")
+        //     return listOf(
+        //         newExtractorLink(
+        //             name,
+        //             name,
+        //             link,
+        //         ) {
+        //             this.referer = url
+        //             this.quality = quality ?: Qualities.Unknown.value
+        //         }
+        //     )
+        // }
+        return
     }
 }
