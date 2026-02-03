@@ -45,10 +45,19 @@ open class FilemoonV2 : ExtractorApi() {
             "User-Agent" to "Mozilla/5.0 (X11; Linux x86_64; rv:137.0) Gecko/20100101 Firefox/137.0"
         )
         val iframeHeaders = defaultHeaders + ("Accept-Language" to "en-US,en;q=0.5")
+        val resolver = WebViewResolver(
+            interceptUrl = Regex("""(m3u8|master\.txt)"""),
+            additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
+            useOkhttp = false,
+            timeout = 15_000L
+        )
 
+
+
+        val theEndingKey = url.substringAfterLast("/")
 
         val iframeResolver = WebViewResolver(
-            interceptUrl = Regex(url.substringAfterLast("/")),
+            interceptUrl = Regex("""(https://9n8o\.com/.*?${theEndingKey})"""),
             additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
             useOkhttp = false,
             timeout = 15_000L
@@ -66,12 +75,6 @@ open class FilemoonV2 : ExtractorApi() {
 
 
 
-        val resolver = WebViewResolver(
-            interceptUrl = Regex("""(m3u8|master\.txt)"""),
-            additionalUrls = listOf(Regex("""(m3u8|master\.txt)""")),
-            useOkhttp = false,
-            timeout = 15_000L
-        )
 
         val initialResponse = app.get(url, defaultHeaders)
         val html1 = initialResponse.document.html()
