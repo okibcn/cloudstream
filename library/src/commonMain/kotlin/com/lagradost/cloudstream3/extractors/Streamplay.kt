@@ -15,9 +15,9 @@ open class Streamplay : ExtractorApi() {
     override val mainUrl = "https://streamplay.to"
     override val requiresReferer = true
 
-    private val idMatch = Regex("""streamplay\.to\/(embed-|)([A-Za-z0-9]*)""")
+    private val idMatch = Regex("""streamplay\.to/(?:embed-)?([A-Za-z0-9]+)""")
     private val realServer = "https://str4ampay.one"
-    private val keyRegex = Regex("""sitekey:.*'(.*?)'""") 
+    private val keyRegex = Regex("""sitekey:\s*'(.*?)'""") 
 
     data class Source(
         @JsonProperty("file") val file: String? = null,
@@ -30,34 +30,45 @@ open class Streamplay : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-        val realUrl = idMatch.find(url)?.groupValues?.get(2)?.let { id ->
-            "$realServer/$id"
-        } ?: url
-        Log.d("CS3debug","  Streamplay inputURL: $realUrl")
+        // Extract ID from URL
+        val id = idMatch.find(url)?.groupValues?.get(1) ?: run {
+            Log.d("CS3debug", "Streamplay: Failed to extract ID from $url")
+            return
+        }
+        
+        val realUrl = "$realServer/$id"
+        Log.d("CS3debug", "  Streamplay inputURL: $realUrl")
+        
+        // Get first page to extract captcha key
         val page1 = app.get(
             realUrl,
-            referrer = referer
+            referer = referer
         )
-        captchaKey = keyRegex.find(page1.text)?.groupValues?.get(1) ?: ""
-        Log.d("CS3debug","  Streamplay inputURL: $realUrl")
-        Log.d("CS3debug","           captchaKey: $captchaKey")
-        token = getCaptchaToken(
+        
+        val captchaKey = keyRegex.find(page1.text)?.groupValues?.get(1) ?: run {
+            Log.d("CS3debug", "  Streamplay: captcha key not found")
+            return
+        }
+        Log.d("CS3debug", "           captchaKey: $captchaKey")
+        
+        val token = getCaptchaToken(
             realUrl,
             captchaKey,
             referer = url
         )
-        Log.d("CS3debug","                Token: $token")
+        Log.d("CS3debug", "                Token: $token")
 
+        // Post request with captcha token
         val page2 = app.post(
-            "$mainUrl/dl",
+            "$realUrl",
             data = mapOf(
                 "op" to "download1",
-                "id" to $id,
-                "file_code" to id,
-                "auto" to "1",
-                "referer" to "$realUrl",
+                "usr_login" to "",
+                "id" to id,
+                "referer" to realUrl,
                 "g-recaptcha-response" to token,
                 "token" to token
+                "imhuman" to "Proceed to video"
             ),
             referer = url,
             headers = mapOf(
@@ -71,37 +82,58 @@ open class Streamplay : ExtractorApi() {
                 "Upgrade-Insecure-Requests" to "1",
             )
         ).documentLarge
-        Log.d("CS3debug","                HTML: $token")
-        packedScript = page2.select("script").find { script ->
+        
+        Log.d("CS3debug", "           Page2 loaded")
+        
+        val packedScript = page2.select("script").find { script ->
             script.data().contains("eval(function(p,a,c,k,e,d)")
-        } ?: ""
-        Log.d("CS3debug","              SCRIPT: ${packedScript.data()}")
+        }
+        
+        if (packedScript == null) {
+            Log.d("CS3debug", "  Streamplay: Packed script not found")
+            return
+        }
+        
+        Log.d("CS3debug", "              SCRIPT found")
        
-        val data = getAndUnpack(packedScript.data()).substringAfter("sources=[").substringBefore(",desc")
+        val unpackedData = getAndUnpack(packedScript.data())
+        val data = unpackedData
+            .substringAfter("sources=[", "")
+            .substringBefore(",desc", "")
             .replace("file", "\"file\"")
             .replace("label", "\"label\"")
-        Log.d("CS3debug","       JSON: $data")      
-        tryParseJson<List<Source>>("[$data}]")?.map { res ->
-            callback.invoke(
-                newExtractorLink(
-                    this.name,
-                    this.name,
-                    res.file ?: return@map null,
-                ) {
-                    this.referer = "$mainServer/"
-                    this.quality = when (res.label) {
-                        "HD" -> Qualities.P720.value
-                        "SD" -> Qualities.P480.value
-                        else -> Qualities.Unknown.value
+            
+        if (data.isEmpty()) {
+            Log.d("CS3debug", "  Streamplay: Failed to extract sources")
+            return
+        }
+        
+        Log.d("CS3debug", "                JSON: $data")
+        
+        tryParseJson<List<Source>>("[$data]")?.forEach { res ->
+            res.file?.let { videoUrl ->
+                callback.invoke(
+                    newExtractorLink(
+                        this.name,
+                        this.name,
+                        videoUrl,
+                    ) {
+                        this.referer = "$realServer/"
+                        this.quality = when (res.label) {
+                            "HD" -> Qualities.P720.value
+                            "SD" -> Qualities.P480.value
+                            else -> Qualities.Unknown.value
+                        }
+                        this.headers = mapOf(
+                            "Range" to "bytes=0-"
+                        )
                     }
-                    this.headers = mapOf(
-                        "Range" to "bytes=0-"
-                    )
-                }
-            )
+                )
+            }
         }
     }
 }
+
 
 
 
