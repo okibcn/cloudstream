@@ -10,13 +10,18 @@ import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 
 import android.util.Log
 
+class stre4mpay : Streamplay() {
+    override var mainUrl = "https://stre4mpay.one"
+}
+
+
 open class Streamplay : ExtractorApi() {
     override val name = "Streamplay"
     override val mainUrl = "https://streamplay.to"
     override val requiresReferer = true
 
     private val idMatch = Regex("""streamplay\.to/(?:embed-)?([A-Za-z0-9]+)""")
-    private val realServer = "https://str4ampay.one"
+    private val realServer = "https://stre4mpay.one"
     private val keyRegex = Regex("""sitekey:\s*'(.*?)'""") 
 
     data class Source(

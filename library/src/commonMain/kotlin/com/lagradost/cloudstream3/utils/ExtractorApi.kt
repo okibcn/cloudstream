@@ -204,6 +204,7 @@ import com.lagradost.cloudstream3.extractors.Smoothpre
 import com.lagradost.cloudstream3.extractors.Sobreatsesuyp
 import com.lagradost.cloudstream3.extractors.Solidfiles
 import com.lagradost.cloudstream3.extractors.Ssbstream
+import com.lagradost.cloudstream3.extractors.Stre4mpay
 import com.lagradost.cloudstream3.extractors.StreamEmbed
 import com.lagradost.cloudstream3.extractors.StreamHLS
 import com.lagradost.cloudstream3.extractors.StreamM4u
@@ -1243,6 +1244,7 @@ val extractorApis: MutableList<ExtractorApi> = arrayListOf(
     Embedgram(),
     Mvidoo(),
     Streamplay(),
+    Stre4mpay(),
     Vidmoly(),
     Vidmolyme(),
     Vidmolyto(),
