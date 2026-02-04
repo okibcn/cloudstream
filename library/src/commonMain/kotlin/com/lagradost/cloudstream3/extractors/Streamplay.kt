@@ -9,6 +9,8 @@ import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import java.net.URI
 
+import android.util.Log
+
 open class Streamplay : ExtractorApi() {
     override val name = "Streamplay"
     override val mainUrl = "https://streamplay.to"
@@ -25,7 +27,12 @@ open class Streamplay : ExtractorApi() {
         val mainServer = URI(redirectUrl).let {
             "${it.scheme}://${it.host}"
         }
+        Log.d("CS3debug","  Streamplay inputURL: $url")
+        Log.d("CS3debug","             redirect: $redirectUrl")
+        Log.d("CS3debug","           mainserver: $mainServer")
+
         val key = redirectUrl.substringAfter("embed-").substringBefore(".html")
+        Log.d("CS3debug","                  key: $key")
         val token =
             request.document.select("script").find { it.data().contains("sitekey:") }?.data()
                 ?.substringAfterLast("sitekey: '")?.substringBefore("',")?.let { captchaKey ->

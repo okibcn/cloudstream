@@ -18,7 +18,7 @@ open class Mp4Upload : ExtractorApi() {
     override var mainUrl = "https://www.mp4upload.com"
     override val requiresReferer = true
 
-    private val idMatch = Regex("""mp4upload\.com/(embed-|)([A-Za-z0-9]*)""")
+    private val idMatch = Regex("""mp4upload\.com\/(embed-|)([A-Za-z0-9]*)""")
     private val srcRegex = Regex("""src:\s*"([^"]+)"""")      //")
 
     override suspend fun getUrl(
