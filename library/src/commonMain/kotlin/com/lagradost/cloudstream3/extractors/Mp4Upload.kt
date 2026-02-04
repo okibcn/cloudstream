@@ -54,7 +54,7 @@ open class Mp4Upload : ExtractorApi() {
                 ) {
                     this.referer = "$mainUrl/"
                     // this.headers = defaultHeaders
-                    this.quality = res ?: Qualities.Unknown.value
+                    // this.quality = res ?: Qualities.Unknown.value
                 }
             )
         }
