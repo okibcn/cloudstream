@@ -59,7 +59,7 @@ open class Streamplay : ExtractorApi() {
         val token = getCaptchaToken(
             realUrl,
             captchaKey,
-            referer = url
+            referer = realUrl
         )
 
         if (token.isNullOrEmpty()) {
