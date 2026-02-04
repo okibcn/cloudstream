@@ -10,7 +10,7 @@ import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 
 import android.util.Log
 
-class stre4mpay : Streamplay() {
+class Stre4mpay : Streamplay() {
     override var mainUrl = "https://stre4mpay.one"
 }
 
