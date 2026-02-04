@@ -45,7 +45,7 @@ open class Streamplay : ExtractorApi() {
                         captchaKey,
                         referer = "$mainServer/"
                     )
-                } ?: {
+                } ?: run {
                     Log.d("CS3debug","           can't bypass captcha")
                     throw ErrorLoadingException("can't bypass captcha") 
                 }
