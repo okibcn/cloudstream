@@ -41,15 +41,16 @@ open class Uqload : ExtractorApi() {
     ) {
         with(app.get(url)) {  // raised error ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED (3003) is due to the response: "error_nofile"
             srcRegex.find(this.text)?.groupValues?.get(1)?.let { link ->
-            Log.d("CS3debugUQload","decoded URL: $link")
-            callback.invoke(
-                newExtractorLink(
-                    source = name,
-                    name = name,
-                    url = link
-                ) {
-                    this.referer = "$mainUrl/"
-                }
+                Log.d("CS3debugUQload","decoded URL: $link")
+                callback.invoke(
+                    newExtractorLink(
+                        source = name,
+                        name = name,
+                        url = link
+                    ) {
+                        this.referer = "$mainUrl/"
+                    }
+                )
             }
         }
     }
