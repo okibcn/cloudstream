@@ -67,8 +67,8 @@ open class Streamplay : ExtractorApi() {
                 "id" to id,
                 "referer" to realUrl,
                 "g-recaptcha-response" to token,
-                "token" to token
-                "imhuman" to "Proceed to video"
+                "token" to token,
+                "imhuman" to "Proceed to video",
             ),
             referer = url,
             headers = mapOf(
