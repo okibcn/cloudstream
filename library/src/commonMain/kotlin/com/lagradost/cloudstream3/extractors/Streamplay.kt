@@ -16,6 +16,9 @@ open class Streamplay : ExtractorApi() {
     override val mainUrl = "https://streamplay.to"
     override val requiresReferer = true
 
+    private val idMatch = Regex("""mp4upload\.com\/(embed-|)([A-Za-z0-9]*)""")
+
+
     override suspend fun getUrl(
         url: String,
         referer: String?,
@@ -31,17 +34,22 @@ open class Streamplay : ExtractorApi() {
         Log.d("CS3debug","             redirect: $redirectUrl")
         Log.d("CS3debug","           mainserver: $mainServer")
 
-        val key = redirectUrl.substringAfter("embed-").substringBefore(".html")
+        val key = redirectUrl.substringAfterLast("/")
         Log.d("CS3debug","                  key: $key")
         val token =
             request.document.select("script").find { it.data().contains("sitekey:") }?.data()
                 ?.substringAfterLast("sitekey: '")?.substringBefore("',")?.let { captchaKey ->
+                    Log.d("CS3debug","           captchakey: $captchaKey")
                     getCaptchaToken(
                         redirectUrl,
                         captchaKey,
                         referer = "$mainServer/"
                     )
-                } ?: throw ErrorLoadingException("can't bypass captcha")
+                } ?: {
+                    Log.d("CS3debug","           can't bypass captcha")
+                    throw ErrorLoadingException("can't bypass captcha") 
+                }
+        Log.d("CS3debug","        captchatoken: $token")       
         app.post(
             "$mainServer/player-$key-488x286.html", data = mapOf(
                 "op" to "embed",
@@ -55,9 +63,11 @@ open class Streamplay : ExtractorApi() {
         ).document.select("script").find { script ->
             script.data().contains("eval(function(p,a,c,k,e,d)")
         }?.let {
+            Log.d("CS3debug","        FOUND PACKED SCRIPT")       
             val data = getAndUnpack(it.data()).substringAfter("sources=[").substringBefore(",desc")
                 .replace("file", "\"file\"")
                 .replace("label", "\"label\"")
+            Log.d("CS3debug","       JSON: $data")       
             tryParseJson<List<Source>>("[$data}]")?.map { res ->
                 callback.invoke(
                     newExtractorLink(
