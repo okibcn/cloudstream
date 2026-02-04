@@ -56,6 +56,11 @@ open class Streamplay : ExtractorApi() {
             captchaKey,
             referer = url
         )
+
+        if (token.isNullOrEmpty()) {
+            Log.d("CS3debug", "  Streamplay: Failed to get captcha token")
+            return
+        }
         Log.d("CS3debug", "                Token: $token")
 
         // Post request with captcha token
