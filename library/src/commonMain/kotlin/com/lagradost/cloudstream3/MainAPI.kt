@@ -154,11 +154,14 @@ object APIHolder {
             Log.d(TAG, "  Referer: $referer")
             
             val uri = URI.create(url)
+            val domainRaw = uri.scheme + "://" + uri.host + ":443"
+
+            Log.d(TAG, "  Domain : $domainRaw")
+
             val domain = base64Encode(
-                (uri.scheme + "://" + uri.host + ":443").encodeToByteArray(),
+                domainRaw.encodeToByteArray(),
             ).replace("\n", "").replace("=", ".")
-            
-            Log.d(TAG, "  Domain : ${base64decode(domain)}")
+
             Log.d(TAG, "  Domain encoded: $domain")
 
             // Step 1: Get vToken with proper headers
