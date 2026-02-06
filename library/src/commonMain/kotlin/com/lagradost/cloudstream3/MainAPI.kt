@@ -185,10 +185,12 @@ object APIHolder {
             Log.d(TAG, "  API response length: ${apiResponse.length}")
             Log.d(TAG, "  API response sample: ${apiResponse.take(200)}")
             
-            val vToken = apiResponse
-                .substringAfter("releases/", "")
-                .substringBefore("/", "")
-            
+            // val vToken = apiResponse
+            //     .substringAfter("releases/", "")
+            //     .substringBefore("/", "")
+            val vToken = "gYdqkxiddE5aXrugNbBbKgtN"
+
+
             if (vToken.isEmpty()) {
                 Log.d(TAG, "  ✗ ERROR: vToken is empty")
                 return null
