@@ -33,6 +33,8 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 
+import android.util.Log
+
 /**
  * API available only on prerelease builds.
  * Using it will cause stable to crash with `NoSuchMethodException`.
