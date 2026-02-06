@@ -165,6 +165,7 @@ object APIHolder {
             Log.d(TAG, "  Domain encoded: $domain")
 
             // Step 1: Get vToken with proper headers
+            delay(3000)
             val apiResponse = app.get(
                 "https://www.google.com/recaptcha/api.js?render=$key",
                 headers = mapOf(
@@ -198,6 +199,7 @@ object APIHolder {
             val anchorUrl = "https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=cs3&k=$key&co=$domain&v=$vToken"
             Log.d(TAG, "  Anchor URL: $anchorUrl")
             
+            delay(3000)
             val anchorDoc = app.get(
                 anchorUrl,
                 headers = mapOf(
