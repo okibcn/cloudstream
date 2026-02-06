@@ -158,11 +158,21 @@ object APIHolder {
                 (uri.scheme + "://" + uri.host + ":443").encodeToByteArray(),
             ).replace("\n", "").replace("=", ".")
             
+            Log.d(TAG, "  Domain : ${base64decode(domain)}")
             Log.d(TAG, "  Domain encoded: $domain")
 
-            // Step 1: Get vToken
+            // Step 1: Get vToken with proper headers
             val apiResponse = app.get(
                 "https://www.google.com/recaptcha/api.js?render=$key",
+                headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept" to "text/javascript, application/javascript, */*",
+                    "Accept-Language" to "en-US,en;q=0.9",
+                    "Referer" to (referer ?: url),
+                    "Sec-Fetch-Dest" to "script",
+                    "Sec-Fetch-Mode" to "no-cors",
+                    "Sec-Fetch-Site" to "cross-site"
+                ),
                 referer = referer,
                 cacheTime = 0
             ).text
@@ -175,30 +185,53 @@ object APIHolder {
                 .substringBefore("/", "")
             
             if (vToken.isEmpty()) {
-                Log.d(TAG, "  ERROR: vToken is empty")
+                Log.d(TAG, "  ✗ ERROR: vToken is empty")
                 return null
             }
             
-            Log.d(TAG, "  vToken: $vToken")
+            Log.d(TAG, "  ✓ vToken: $vToken")
             
-            // Step 2: Get recaptcha token
+            // Step 2: Get recaptcha token with proper headers
             val anchorUrl = "https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=cs3&k=$key&co=$domain&v=$vToken"
             Log.d(TAG, "  Anchor URL: $anchorUrl")
             
-            val anchorDoc = app.get(anchorUrl).document
+            val anchorDoc = app.get(
+                anchorUrl,
+                headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept" to "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                    "Accept-Language" to "en-US,en;q=0.9",
+                    "Referer" to url,
+                    "Sec-Fetch-Dest" to "iframe",
+                    "Sec-Fetch-Mode" to "navigate",
+                    "Sec-Fetch-Site" to "cross-site"
+                )
+            ).document
+            
             val recapToken = anchorDoc.selectFirst("#recaptcha-token")?.attr("value")
             
             if (recapToken == null) {
-                Log.d(TAG, "  ERROR: recapToken not found in anchor response")
-                Log.d(TAG, "  Anchor HTML sample: ${anchorDoc.html().take(500)}")
+                Log.d(TAG, "  ✗ ERROR: recapToken not found")
+                Log.d(TAG, "  Anchor HTML: ${anchorDoc.html().take(500)}")
                 return null
             }
             
-            Log.d(TAG, "  recapToken: $recapToken")
+            Log.d(TAG, "  ✓ recapToken: ${recapToken.take(50)}...")
             
-            // Step 3: Get final token
+            // Step 3: Get final token with proper headers
             val reloadResponse = app.post(
                 "https://www.google.com/recaptcha/api2/reload?k=$key",
+                headers = mapOf(
+                    "User-Agent" to "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                    "Accept" to "*/*",
+                    "Accept-Language" to "en-US,en;q=0.9",
+                    "Content-Type" to "application/x-www-form-urlencoded",
+                    "Origin" to "https://www.google.com",
+                    "Referer" to anchorUrl,
+                    "Sec-Fetch-Dest" to "empty",
+                    "Sec-Fetch-Mode" to "cors",
+                    "Sec-Fetch-Site" to "same-origin"
+                ),
                 data = mapOf(
                     "v" to vToken,
                     "k" to key,
@@ -211,23 +244,22 @@ object APIHolder {
             ).text
             
             Log.d(TAG, "  Reload response length: ${reloadResponse.length}")
-            Log.d(TAG, "  Reload response sample: ${reloadResponse.take(300)}")
             
             val finalToken = reloadResponse
                 .substringAfter("rresp\",\"", "")
                 .substringBefore("\"", "")
             
             if (finalToken.isEmpty()) {
-                Log.d(TAG, "  ERROR: finalToken is empty")
+                Log.d(TAG, "  ✗ ERROR: finalToken is empty")
+                Log.d(TAG, "  Reload response: ${reloadResponse.take(300)}")
                 return null
             }
             
-            Log.d(TAG, "  ✓ Success! Final token: ${finalToken.take(50)}...")
+            Log.d(TAG, "  ✓ SUCCESS! Final token length: ${finalToken.length}")
             return finalToken
             
         } catch (e: Exception) {
             Log.d(TAG, "  ✗ EXCEPTION: ${e.message}")
-            Log.d(TAG, "  Stack trace: ${e.stackTraceToString()}")
             logError(e)
         }
         return null
