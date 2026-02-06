@@ -144,41 +144,88 @@ object APIHolder {
     // Try document.select("script[src*=https://www.google.com/recaptcha/api.js?render=]").attr("src").substringAfter("render=")
     // To get the key
     suspend fun getCaptchaToken(url: String, key: String, referer: String? = null): String? {
+        val TAG = "CS3debugCaptcha"
         try {
+            Log.d(TAG, "Starting captcha token retrieval")
+            Log.d(TAG, "  URL: $url")
+            Log.d(TAG, "  Key: $key")
+            Log.d(TAG, "  Referer: $referer")
+            
             val uri = URI.create(url)
             val domain = base64Encode(
                 (uri.scheme + "://" + uri.host + ":443").encodeToByteArray(),
             ).replace("\n", "").replace("=", ".")
+            
+            Log.d(TAG, "  Domain encoded: $domain")
 
-            val vToken =
-                app.get(
-                    "https://www.google.com/recaptcha/api.js?render=$key",
-                    referer = referer,
-                    cacheTime = 0
-                )
-                    .text
-                    .substringAfter("releases/")
-                    .substringBefore("/")
-            val recapToken =
-                app.get("https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=cs3&k=$key&co=$domain&v=$vToken")
-                    .document
-                    .selectFirst("#recaptcha-token")?.attr("value")
-            if (recapToken != null) {
-                return app.post(
-                    "https://www.google.com/recaptcha/api2/reload?k=$key",
-                    data = mapOf(
-                        "v" to vToken,
-                        "k" to key,
-                        "c" to recapToken,
-                        "co" to domain,
-                        "sa" to "",
-                        "reason" to "q"
-                    ), cacheTime = 0
-                ).text
-                    .substringAfter("rresp\",\"")
-                    .substringBefore("\"")
+            // Step 1: Get vToken
+            val apiResponse = app.get(
+                "https://www.google.com/recaptcha/api.js?render=$key",
+                referer = referer,
+                cacheTime = 0
+            ).text
+            
+            Log.d(TAG, "  API response length: ${apiResponse.length}")
+            Log.d(TAG, "  API response sample: ${apiResponse.take(200)}")
+            
+            val vToken = apiResponse
+                .substringAfter("releases/", "")
+                .substringBefore("/", "")
+            
+            if (vToken.isEmpty()) {
+                Log.d(TAG, "  ERROR: vToken is empty")
+                return null
             }
+            
+            Log.d(TAG, "  vToken: $vToken")
+            
+            // Step 2: Get recaptcha token
+            val anchorUrl = "https://www.google.com/recaptcha/api2/anchor?ar=1&hl=en&size=invisible&cb=cs3&k=$key&co=$domain&v=$vToken"
+            Log.d(TAG, "  Anchor URL: $anchorUrl")
+            
+            val anchorDoc = app.get(anchorUrl).document
+            val recapToken = anchorDoc.selectFirst("#recaptcha-token")?.attr("value")
+            
+            if (recapToken == null) {
+                Log.d(TAG, "  ERROR: recapToken not found in anchor response")
+                Log.d(TAG, "  Anchor HTML sample: ${anchorDoc.html().take(500)}")
+                return null
+            }
+            
+            Log.d(TAG, "  recapToken: $recapToken")
+            
+            // Step 3: Get final token
+            val reloadResponse = app.post(
+                "https://www.google.com/recaptcha/api2/reload?k=$key",
+                data = mapOf(
+                    "v" to vToken,
+                    "k" to key,
+                    "c" to recapToken,
+                    "co" to domain,
+                    "sa" to "",
+                    "reason" to "q"
+                ), 
+                cacheTime = 0
+            ).text
+            
+            Log.d(TAG, "  Reload response length: ${reloadResponse.length}")
+            Log.d(TAG, "  Reload response sample: ${reloadResponse.take(300)}")
+            
+            val finalToken = reloadResponse
+                .substringAfter("rresp\",\"", "")
+                .substringBefore("\"", "")
+            
+            if (finalToken.isEmpty()) {
+                Log.d(TAG, "  ERROR: finalToken is empty")
+                return null
+            }
+            
+            Log.d(TAG, "  ✓ Success! Final token: ${finalToken.take(50)}...")
+            return finalToken
+            
         } catch (e: Exception) {
+            Log.d(TAG, "  ✗ EXCEPTION: ${e.message}")
+            Log.d(TAG, "  Stack trace: ${e.stackTraceToString()}")
             logError(e)
         }
         return null
