@@ -916,8 +916,11 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>(
         when {
             // Case 1: Focus is within plugin content -> Move to plugin selector
             isInsideRecycler -> {
-                binding?.homeChangeApi?.requestFocus()
-                binding?.homeMasterRecycler?.smoothScrollToPosition(0)
+                binding?.homeMasterRecycler?.scrollToPosition(0)
+                // Defer focus request until after scroll animation
+                binding?.homeChangeApi?.post {
+                    binding?.homeChangeApi?.requestFocus()
+                }
             }
             // Case 2: Focus is on plugin selector -> Move to home navigation
             currentFocus.id == R.id.home_change_api -> {
