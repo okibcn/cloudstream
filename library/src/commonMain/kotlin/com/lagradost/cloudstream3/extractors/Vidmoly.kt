@@ -35,9 +35,12 @@ open class Vidmoly : ExtractorApi() {
             "Sec-Fetch-Dest" to "iframe"
         )
         
-        val newUrl = if (url.contains("/w/")) 
-            url.replaceFirst("/w/", "/embed-") + ".html" 
+        val newUrl =
+            if (url.contains("/w/") || url.contains("/v/"))
+                url.replaceFirst("/w/", "/embed-")
+                .replaceFirst("/v/", "/embed-") + ".html"
             else url
+
 
         val script = app.get(newUrl, headers = headers, referer = referer)
             .document.select("script")
