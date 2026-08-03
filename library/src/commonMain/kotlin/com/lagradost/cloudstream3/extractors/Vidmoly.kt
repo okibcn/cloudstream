@@ -44,7 +44,7 @@ open class Vidmoly : ExtractorApi() {
 
         val script = app.get(newUrl, headers = headers, referer = referer)
             .document.select("script")
-            .map { it.data().replace("'", "\"") }
+            // .map { it.data().replace("'", "\"") }
             .firstOrNull { it.contains("sources:") }
         val sourcesLine = script
             ?.lineSequence()
