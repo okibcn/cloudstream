@@ -47,12 +47,12 @@ open class Vidmoly : ExtractorApi() {
 
         val script = app.get(newUrl, headers = headers, referer = referer)
             .document.select("script")
-            .map { it.data().replace("'", "\"") }
+            .map { it.text().replace("'", "\"") }
             .firstOrNull { it.contains("sources:") }
         val regex = Regex("""file:\s*'(https[^']+)'""")
         val match = regex.find(script ?: "")
         val m3u8Url = match?.groupValues?.get(1)
-        println("HDFull Vidmoly: $m3u8Url")  // DEBUG 
+        println("HDFull - Vidmoly m3u8: $m3u8Url")  // DEBUG 
 
         
         // Extracts and parses videoData
