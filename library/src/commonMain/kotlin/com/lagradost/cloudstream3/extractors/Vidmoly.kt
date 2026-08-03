@@ -42,10 +42,14 @@ open class Vidmoly : ExtractorApi() {
         println("HDFull Vidmoly: $newUrl")  // DEBUG 
 
 
+        // val script = app.get(newUrl, headers = headers, referer = referer)
+        //     .document.select("script")
+        //     .map { it.data().replace("'", "\"") }
+        //     .firstOrNull { it.contains("sources:") }
         val script = app.get(newUrl, headers = headers, referer = referer)
             .document.select("script")
-            // .map { it.data().replace("'", "\"") }
-            .firstOrNull { it.contains("sources:") }
+            .firstOrNull { it.data().contains("sources:") }
+            ?.data()
         val sourcesLine = script
             ?.lineSequence()
             ?.firstOrNull { it.contains("sources:") }
