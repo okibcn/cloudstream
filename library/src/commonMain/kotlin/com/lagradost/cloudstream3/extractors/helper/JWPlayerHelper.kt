@@ -55,7 +55,7 @@ object JwPlayerHelper {
 
         var extractedLinks = sourceMatches.flatMap { link ->
             val cleanUrl = link.file.replace("\\/", "/")
-            println("JWP URL: $cleanUrl")
+            println("HDFull: $cleanUrl")
             if (cleanUrl.contains(".m3u8") || cleanUrl.contains(".txt")) {
                 try {
                     M3u8Helper.generateM3u8(
