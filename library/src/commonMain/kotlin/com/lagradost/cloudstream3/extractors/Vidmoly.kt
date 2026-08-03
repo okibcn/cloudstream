@@ -7,6 +7,8 @@ import com.lagradost.cloudstream3.extractors.helper.JwPlayerHelper
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 
+import com.lagradost.cloudstream3.utils.M3u8Helper
+
 class Vidmolyme : Vidmoly() {
     override val mainUrl = "https://vidmoly.me"
 }
@@ -46,40 +48,40 @@ open class Vidmoly : ExtractorApi() {
         val script = app.get(newUrl, headers = headers, referer = referer)
             .document.select("script")
             .firstOrNull { it.data().contains("sources:") }
-            ?.data()
+            ?.data().replace("'","\"")
+
         val regex = Regex("""file:\s*'(https[^']+)'""")
-        val match = regex.find(script)
-        val cleanUrl = match?.groupValues?.get(1)
+        val match = regex.find(script ?: "")
         println("HDFull Vidmoly: $cleanUrl")  // DEBUG 
 
         
         // Extracts and parses videoData
-        // JwPlayerHelper.extractStreamLinks(script.orEmpty(), name, mainUrl, callback, subtitleCallback)
-        if (cleanUrl.contains(".m3u8") || cleanUrl.contains(".txt")) {
-            try {
-                println("HDFull VidmolyOK: $cleanUrl")  // DEBUG 
-                M3u8Helper.generateM3u8(
-                    source = name,
-                    streamUrl = cleanUrl,
-                    referer = mainUrl,
-                    headers = headers,
-                )
-            } catch (e: Exception) {
-                Log.d("JW_PLAYER_HELPER", "Error generating M3U8 links: ${e.message}")
-                emptyList()
-            }
-        } else {
-            listOf(
-                newExtractorLink(
-                    source = sourceName,
-                    name = sourceName,
-                    url = fixUrl(cleanUrl, mainUrl),
-                ) {
-                    this.referer = url
-                    this.headers = headers
-                }
-            )
-        }
+        JwPlayerHelper.extractStreamLinks(script.orEmpty(), name, mainUrl, callback, subtitleCallback)
+        // if (cleanUrl.contains(".m3u8") || cleanUrl.contains(".txt")) {
+        //     try {
+        //         println("HDFull VidmolyOK: $cleanUrl")  // DEBUG 
+        //         M3u8Helper.generateM3u8(
+        //             source = name,
+        //             streamUrl = cleanUrl,
+        //             referer = mainUrl,
+        //             headers = headers,
+        //         )
+        //     } catch (e: Exception) {
+        //         Log.d("JW_PLAYER_HELPER", "Error generating M3U8 links: ${e.message}")
+        //         emptyList()
+        //     }
+        // } else {
+        //     listOf(
+        //         newExtractorLink(
+        //             source = sourceName,
+        //             name = sourceName,
+        //             url = fixUrl(cleanUrl, mainUrl),
+        //         ) {
+        //             this.referer = url
+        //             this.headers = headers
+        //         }
+        //     )
+        // }
 
     }
 }
