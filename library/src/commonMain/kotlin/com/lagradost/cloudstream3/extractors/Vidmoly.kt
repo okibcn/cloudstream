@@ -37,11 +37,8 @@ open class Vidmoly : ExtractorApi() {
             "Sec-Fetch-Dest" to "iframe"
         )
         
-        val newUrl =
-            if (url.contains("/w/") || url.contains("/v/"))
-                url.replaceFirst("/w/", "/embed-")
-                .replaceFirst("/v/", "/embed-") + ".html"
-            else url
+        val vidmolyId=url.removeSuffix("/").substringAfterLast("/")
+        val newUrl ="https://vidmoly.biz/embed-${vidmolyId}.html"
         println("HDFull Vidmoly: $newUrl")  // DEBUG 
 
 
