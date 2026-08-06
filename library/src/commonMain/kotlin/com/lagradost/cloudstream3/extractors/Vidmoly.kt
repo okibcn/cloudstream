@@ -38,7 +38,7 @@ open class Vidmoly : ExtractorApi() {
         )
         
         val vidmolyId=url.removeSuffix("/").substringAfterLast("/")
-        val newUrl ="https://vidmoly.biz/embed-${vidmolyId}.html"
+        val newUrl ="${mainUrl}/embed-${vidmolyId}.html"
         println("HDFull Vidmoly: $newUrl")  // DEBUG 
 
 
