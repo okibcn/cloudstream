@@ -25,6 +25,7 @@ open class Vidmoly : ExtractorApi() {
     override val name = "Vidmoly"
     override val mainUrl = "https://vidmoly.net"
     override val requiresReferer = true
+    val downloadUrl = "https://vidmoly.biz"
 
     override suspend fun getUrl(
         url: String,
@@ -38,7 +39,7 @@ open class Vidmoly : ExtractorApi() {
         )
         
         val vidmolyId=url.removeSuffix("/").substringAfterLast("/")
-        val newUrl ="${mainUrl}/embed-${vidmolyId}.html"
+        val newUrl ="${downloadUrl}/embed-${vidmolyId}.html"
         println("HDFull Vidmoly: $newUrl")  // DEBUG 
 
 
