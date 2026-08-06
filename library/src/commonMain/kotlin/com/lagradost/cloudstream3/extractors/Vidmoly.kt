@@ -7,8 +7,6 @@ import com.lagradost.cloudstream3.extractors.helper.JwPlayerHelper
 import com.lagradost.cloudstream3.utils.ExtractorApi
 import com.lagradost.cloudstream3.utils.ExtractorLink
 
-import com.lagradost.cloudstream3.utils.M3u8Helper
-
 class Vidmolyme : Vidmoly() {
     override val mainUrl = "https://vidmoly.me"
 }
