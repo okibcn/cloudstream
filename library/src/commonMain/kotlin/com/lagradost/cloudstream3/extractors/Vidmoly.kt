@@ -43,7 +43,7 @@ open class Vidmoly : ExtractorApi() {
             .document.select("script")
             .map { it.data().replace("'", "\"") }
             .firstOrNull { it.contains("sources:") }
-        val scriptLine = source
+        val scriptLine = script
             .lineSequence()
             .find { "sources:" in it }
         println("HDFull script: $scriptLine")
