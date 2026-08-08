@@ -23,7 +23,6 @@ open class Vidmoly : ExtractorApi() {
     override val name = "Vidmoly"
     override val mainUrl = "https://vidmoly.net"
     override val requiresReferer = true
-    val downloadUrl = "https://vidmoly.biz"
 
     override suspend fun getUrl(
         url: String,
@@ -31,6 +30,7 @@ open class Vidmoly : ExtractorApi() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
+        val downloadUrl = "https://vidmoly.biz"
         val headers = mapOf(
             "user-agent" to USER_AGENT,
             "Sec-Fetch-Dest" to "iframe"
@@ -38,12 +38,15 @@ open class Vidmoly : ExtractorApi() {
         
         val vidmolyId=url.removeSuffix("/").substringAfterLast("/")
         val iframeUrl ="${downloadUrl}/embed-${vidmolyId}.html"
-        println("HDFull igrameUrl: $iframeUrl")
+        println("HDFull iframeUrl: $iframeUrl")
         val script = app.get(iframeUrl, headers = headers, referer = referer)
             .document.select("script")
             .map { it.data().replace("'", "\"") }
             .firstOrNull { it.contains("sources:") }
-        println("HDFull igrameUrl: $script")
+        val scriptLine = source
+            .lineSequence()
+            .find { "sources:" in it }
+        println("HDFull script: $scriptLine")
         // Extracts and parses videoData
         JwPlayerHelper.extractStreamLinks(script.orEmpty(), name, mainUrl, callback, subtitleCallback)
     }
