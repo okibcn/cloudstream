@@ -44,8 +44,8 @@ open class Vidmoly : ExtractorApi() {
             .map { it.data().replace("'", "\"") }
             .firstOrNull { it.contains("sources:") }
         val scriptLine = script
-            .lineSequence()
-            .find { "sources:" in it }
+            ?.lineSequence()
+            ?.find { "sources:" in it }
         println("HDFull script: $scriptLine")
         // Extracts and parses videoData
         JwPlayerHelper.extractStreamLinks(script.orEmpty(), name, mainUrl, callback, subtitleCallback)
